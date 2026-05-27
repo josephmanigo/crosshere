@@ -95,14 +95,16 @@ export default function NotificationsPage() {
 
       <motion.div variants={staggerItem}>
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="emergency">Emergencies</TabsTrigger>
-            <TabsTrigger value="system">System</TabsTrigger>
-            <TabsTrigger value="sms">SMS</TabsTrigger>
-            <TabsTrigger value="email">Email</TabsTrigger>
-            <TabsTrigger value="escalation">Escalation</TabsTrigger>
-          </TabsList>
+          <div className="w-full overflow-x-auto">
+            <TabsList className="w-full min-w-max h-auto p-1 flex">
+              <TabsTrigger value="all" className="shrink-0 flex-1">All</TabsTrigger>
+              <TabsTrigger value="emergency" className="shrink-0 flex-1">Emergencies</TabsTrigger>
+              <TabsTrigger value="system" className="shrink-0 flex-1">System</TabsTrigger>
+              <TabsTrigger value="sms" className="shrink-0 flex-1">SMS</TabsTrigger>
+              <TabsTrigger value="email" className="shrink-0 flex-1">Email</TabsTrigger>
+              <TabsTrigger value="escalation" className="shrink-0 flex-1">Escalation</TabsTrigger>
+            </TabsList>
+          </div>
         </Tabs>
       </motion.div>
 

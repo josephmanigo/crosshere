@@ -46,11 +46,11 @@ export default function SettingsPage() {
 
       <motion.div variants={staggerItem}>
         <Tabs defaultValue="appearance" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="appearance"><Palette className="size-4 mr-1.5" /> Appearance</TabsTrigger>
-            <TabsTrigger value="accessibility"><Accessibility className="size-4 mr-1.5" /> Accessibility</TabsTrigger>
-            <TabsTrigger value="notifications"><BellRing className="size-4 mr-1.5" /> Notifications</TabsTrigger>
-            <TabsTrigger value="profile"><User className="size-4 mr-1.5" /> Profile</TabsTrigger>
+          <TabsList className="w-full justify-start overflow-x-auto overflow-y-hidden h-auto p-1">
+            <TabsTrigger value="appearance" className="shrink-0"><Palette className="size-4 mr-1.5" /> Appearance</TabsTrigger>
+            <TabsTrigger value="accessibility" className="shrink-0"><Accessibility className="size-4 mr-1.5" /> Accessibility</TabsTrigger>
+            <TabsTrigger value="notifications" className="shrink-0"><BellRing className="size-4 mr-1.5" /> Notifications</TabsTrigger>
+            <TabsTrigger value="profile" className="shrink-0"><User className="size-4 mr-1.5" /> Profile</TabsTrigger>
           </TabsList>
 
           {/* Appearance */}
@@ -153,7 +153,7 @@ export default function SettingsPage() {
                     <p className="text-xs text-muted-foreground mt-0.5">Adjust text size across the app</p>
                   </div>
                   <Select value={fontSize} onValueChange={setFontSize}>
-                    <SelectTrigger className="w-32">
+                    <SelectTrigger className="w-32 rounded-full bg-muted/50 border-transparent">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -223,19 +223,19 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>First Name</Label>
-                    <Input defaultValue="Sarah" />
+                    <Input defaultValue="Sarah" className="rounded-full bg-muted/50 border-transparent" />
                   </div>
                   <div className="space-y-2">
                     <Label>Last Name</Label>
-                    <Input defaultValue="Mitchell" />
+                    <Input defaultValue="Mitchell" className="rounded-full bg-muted/50 border-transparent" />
                   </div>
                   <div className="space-y-2">
                     <Label>Email</Label>
-                    <Input defaultValue="nurse@crosshere.edu" type="email" />
+                    <Input defaultValue="nurse@crosshere.edu" type="email" className="rounded-full bg-muted/50 border-transparent" />
                   </div>
                   <div className="space-y-2">
                     <Label>Phone</Label>
-                    <Input defaultValue="+1 (555) 123-4567" />
+                    <Input defaultValue="+1 (555) 123-4567" className="rounded-full bg-muted/50 border-transparent" />
                   </div>
                 </div>
 

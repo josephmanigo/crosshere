@@ -17,6 +17,8 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   React.useEffect(() => {
+    /* 
+    // DEV BYPASS: Authentication checks temporarily disabled
     if (!isLoading) {
       if (!isAuthenticated) {
         router.push("/login");
@@ -33,8 +35,11 @@ export default function DashboardLayout({
         }
       }
     }
+    */
   }, [isLoading, isAuthenticated, router, pathname, role]);
 
+  /*
+  // DEV BYPASS: Loading states temporarily disabled
   if (isLoading || !isAuthenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -42,6 +47,7 @@ export default function DashboardLayout({
       </div>
     );
   }
+  */
 
   return <>{children}</>;
 }

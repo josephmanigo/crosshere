@@ -24,7 +24,7 @@ export default function AuthLayout({
           />
         </div>
 
-        <div className="relative z-10 flex flex-col justify-between p-12 text-white w-full">
+        <div className="relative z-10 flex flex-col justify-between px-12 py-8 text-white w-full h-full">
           {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="size-10 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
@@ -34,7 +34,7 @@ export default function AuthLayout({
           </div>
 
           {/* Hero Content */}
-          <div className="max-w-lg">
+          <div className="max-w-lg mb-16">
             <h1 className="text-4xl xl:text-5xl font-semibold leading-tight tracking-tight mb-4">
               Every second counts in an emergency
             </h1>
@@ -46,24 +46,25 @@ export default function AuthLayout({
 
           {/* Footer */}
           <p className="text-sm text-white/40">
-            © 2026 CROSSHERE. Protecting student health, one response at a time.
+            © 2026 CROSSHERE. Developed by Quan Technologies.
           </p>
         </div>
       </div>
 
       {/* Right — Form */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-8 lg:p-12 bg-background relative">
-        <div className="absolute top-4 right-4 sm:top-6 sm:right-8 z-10">
-          <ThemeToggle />
-        </div>
-        <div className="w-full max-w-[400px]">
-          {/* Mobile logo */}
-          <div className="flex items-center gap-3 mb-8 lg:hidden">
+        <div className="absolute top-4 left-4 right-4 sm:top-6 sm:left-8 sm:right-8 lg:top-8 lg:right-12 z-10 flex items-center justify-between">
+          <div className="flex items-center gap-3 lg:hidden">
             <div className="size-9 rounded-xl bg-crosshere flex items-center justify-center">
               <Cross className="size-4 text-white" strokeWidth={2.5} />
             </div>
             <span className="text-base font-semibold tracking-tight">CROSSHERE</span>
           </div>
+          <div className="ml-auto">
+            <ThemeToggle />
+          </div>
+        </div>
+        <div className="w-full max-w-[400px]">
           {children}
         </div>
       </div>

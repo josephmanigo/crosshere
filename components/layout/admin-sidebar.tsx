@@ -28,30 +28,35 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
-import { mainNavItems } from "@/lib/constants";
+import { adminNavItems } from "@/lib/constants";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
-interface SidebarProps {
+interface AdminSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
 }
 
 function SidebarLogo({ collapsed }: { collapsed: boolean }) {
   return (
-    <Link href="/clinic" className={cn("flex items-center gap-3 py-2", collapsed ? "px-0 justify-center" : "px-3")}>
+    <Link href="/admin" className={cn("flex items-center gap-3 py-2", collapsed ? "px-0 justify-center" : "px-3")}>
       <div className="size-8 rounded-xl bg-crosshere flex items-center justify-center shrink-0">
         <Cross className="size-4 text-crosshere-foreground" strokeWidth={2.5} />
       </div>
       <AnimatePresence>
         {!collapsed && (
-          <motion.span
+          <motion.div
             initial={{ opacity: 0, width: 0 }}
             animate={{ opacity: 1, width: "auto" }}
             exit={{ opacity: 0, width: 0 }}
-            className="text-base font-semibold tracking-tight whitespace-nowrap overflow-hidden"
+            className="flex flex-col whitespace-nowrap overflow-hidden"
           >
-            CROSSHERE
-          </motion.span>
+            <span className="text-base font-bold tracking-tight leading-none">
+              CROSSHERE
+            </span>
+            <span className="text-[10px] uppercase tracking-widest text-crosshere font-semibold mt-0.5">
+              Admin Portal
+            </span>
+          </motion.div>
         )}
       </AnimatePresence>
     </Link>
@@ -63,7 +68,7 @@ function NavLink({
   collapsed,
   active,
 }: {
-  item: (typeof mainNavItems)[0];
+  item: (typeof adminNavItems)[0];
   collapsed: boolean;
   active: boolean;
 }) {
@@ -113,7 +118,7 @@ function NavLink({
   return content;
 }
 
-function SidebarContent({ collapsed, onToggle }: SidebarProps) {
+function SidebarContent({ collapsed, onToggle }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [showSignOut, setShowSignOut] = React.useState(false);
@@ -164,14 +169,14 @@ function SidebarContent({ collapsed, onToggle }: SidebarProps) {
       {/* Nav Items */}
       <ScrollArea className="flex-1 px-3 py-3">
         <nav className="space-y-1">
-          {mainNavItems.map((item) => (
+          {adminNavItems.map((item) => (
             <NavLink
               key={item.href}
               item={item}
               collapsed={collapsed}
               active={
-                item.href === "/clinic"
-                  ? pathname === "/clinic"
+                item.href === "/admin"
+                  ? pathname === "/admin"
                   : pathname.startsWith(item.href)
               }
             />
@@ -191,9 +196,9 @@ function SidebarContent({ collapsed, onToggle }: SidebarProps) {
             collapsed && "justify-center px-0"
           )}
         >
-          <Avatar className="size-8 shrink-0">
+          <Avatar className="size-8 shrink-0 border border-crosshere/20">
             <AvatarFallback className="bg-crosshere/10 text-crosshere text-xs font-semibold">
-              SM
+              AD
             </AvatarFallback>
           </Avatar>
           <AnimatePresence>
@@ -204,8 +209,8 @@ function SidebarContent({ collapsed, onToggle }: SidebarProps) {
                 exit={{ opacity: 0, width: 0 }}
                 className="flex-1 min-w-0 overflow-hidden"
               >
-                <p className="text-sm font-medium truncate">Sarah Mitchell</p>
-                <p className="text-xs text-muted-foreground truncate">School Nurse</p>
+                <p className="text-sm font-medium truncate">System Admin</p>
+                <p className="text-xs text-muted-foreground truncate">Super Administrator</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -227,7 +232,7 @@ function SidebarContent({ collapsed, onToggle }: SidebarProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Sign out of CROSSHERE?</AlertDialogTitle>
             <AlertDialogDescription>
-              You will be returned to the login screen and will need to authenticate again to access the dashboard.
+              You will be returned to the login screen and will need to authenticate again to access the admin portal.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -245,7 +250,7 @@ function SidebarContent({ collapsed, onToggle }: SidebarProps) {
   );
 }
 
-export function Sidebar({ collapsed, onToggle }: SidebarProps) {
+export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
   const isMobile = useMediaQuery("(max-width: 1023px)");
   const [open, setOpen] = React.useState(false);
   const pathname = usePathname();
@@ -262,13 +267,13 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             variant="ghost"
             size="icon"
             className="lg:hidden fixed top-3 left-3 z-40"
-            id="sidebar-mobile-trigger"
+            id="admin-sidebar-mobile-trigger"
           >
             <PanelLeftOpen className="size-5" />
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-64 p-0">
-          <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+          <SheetTitle className="sr-only">Admin Navigation</SheetTitle>
           <SidebarContent collapsed={false} onToggle={onToggle} />
         </SheetContent>
       </Sheet>

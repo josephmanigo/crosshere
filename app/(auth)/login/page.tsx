@@ -153,7 +153,7 @@ export default function LoginPage() {
               <path d="M3 5.5A2.5 2.5 0 0 1 5.5 3h13A2.5 2.5 0 0 1 21 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 18.5v-13zM5.5 4A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 18.5 4h-13z" />
               <path d="M11 8h4v4h-4v4H8v-4H4V8h4V4h3v4z" opacity={0} />
             </svg>
-            Microsoft
+            Facebook
           </Button>
         </div>
       </motion.div>

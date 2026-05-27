@@ -17,6 +17,7 @@ export function proxy(request: NextRequest) {
   const role = request.cookies.get("crosshere-session-role")?.value;
 
   // 1. If trying to access protected route without auth, redirect to login
+  /* DEV BYPASS
   if (isProtectedPath && !role) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
@@ -42,14 +43,11 @@ export function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL(`/${role}`, request.url));
     }
   }
+  */
 
   // Allow root (/) to redirect to login if no auth, or dashboard if auth
   if (pathname === "/") {
-    if (role) {
-      return NextResponse.redirect(new URL(`/${role}`, request.url));
-    } else {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
+    return NextResponse.redirect(new URL("/admin", request.url));
   }
 
   return NextResponse.next();

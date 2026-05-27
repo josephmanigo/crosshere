@@ -170,11 +170,11 @@ export default function IncidentsPage() {
             placeholder="Search incidents..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-10"
+            className="pl-9 h-10 rounded-full bg-muted/50 border-transparent"
           />
         </div>
         <Select value={severityFilter} onValueChange={setSeverityFilter}>
-          <SelectTrigger className="w-40 h-10">
+          <SelectTrigger className="w-40 h-10 rounded-full bg-muted/50 border-transparent">
             <SelectValue placeholder="Severity" />
           </SelectTrigger>
           <SelectContent>
@@ -186,7 +186,7 @@ export default function IncidentsPage() {
           </SelectContent>
         </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-40 h-10">
+          <SelectTrigger className="w-40 h-10 rounded-full bg-muted/50 border-transparent">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>

@@ -487,3 +487,50 @@ export const clinicStatus = {
   nextAvailable: null as string | null,
 };
 
+// ══════════════════════════════════════════════════════════════════════════════
+// ADMIN DATA
+// ══════════════════════════════════════════════════════════════════════════════
+
+export const adminStats = {
+  activeSchools: 1,
+  totalUsers: 1423,
+  students: 1247,
+  parents: 110,
+  clinicStaff: 12,
+  admins: 4,
+  systemHealth: 99.9,
+  activeIncidents: 3,
+  pendingInvites: 18,
+};
+
+export const adminUsers = [
+  { id: "USR-001", name: "Sarah Mitchell", email: "nurse@school.edu", role: "clinic", status: "active", joinedAt: "2024-01-15", lastLogin: "2026-05-26T09:00:00Z", avatar: "SM" },
+  { id: "USR-002", name: "Alex Johnson", email: "alex.j@school.edu", role: "student", status: "active", joinedAt: "2024-08-20", lastLogin: "2026-05-25T14:30:00Z", avatar: "AJ" },
+  { id: "USR-003", name: "Maria Rodriguez", email: "m.rodriguez@email.com", role: "parent", status: "active", joinedAt: "2024-08-21", lastLogin: "2026-05-24T18:15:00Z", avatar: "MR" },
+  { id: "USR-004", name: "Admin User", email: "admin@crosshere.com", role: "admin", status: "active", joinedAt: "2023-11-01", lastLogin: "2026-05-26T08:45:00Z", avatar: "AD" },
+  { id: "USR-005", name: "Pending Teacher", email: "teacher@school.edu", role: "clinic", status: "pending", joinedAt: "2026-05-25", lastLogin: null, avatar: "PT" },
+  { id: "USR-006", name: "Inactive Student", email: "inactive@school.edu", role: "student", status: "inactive", joinedAt: "2023-09-01", lastLogin: "2025-06-15T12:00:00Z", avatar: "IS" },
+];
+
+export const adminInvitations = [
+  { id: "INV-001", email: "new.nurse@school.edu", role: "clinic", sentAt: "2026-05-25T10:00:00Z", expiresAt: "2026-06-01T10:00:00Z", status: "pending" },
+  { id: "INV-002", email: "new.student@school.edu", role: "student", sentAt: "2026-05-20T14:30:00Z", expiresAt: "2026-05-27T14:30:00Z", status: "pending" },
+  { id: "INV-003", email: "parent2@email.com", role: "parent", sentAt: "2026-05-18T09:15:00Z", expiresAt: "2026-05-25T09:15:00Z", status: "expired" },
+  { id: "INV-004", email: "accepted@school.edu", role: "student", sentAt: "2026-05-10T11:00:00Z", expiresAt: "2026-05-17T11:00:00Z", status: "accepted" },
+];
+
+export const adminAuditLogs = [
+  { id: "AUD-001", timestamp: "2026-05-26T10:30:00Z", actor: "Admin User", action: "Updated system settings", target: "Notification Preferences", type: "settings" },
+  { id: "AUD-002", timestamp: "2026-05-26T09:42:00Z", actor: "System", action: "Emergency escalated", target: "INC-1042", type: "escalation" },
+  { id: "AUD-003", timestamp: "2026-05-26T08:45:00Z", actor: "Admin User", action: "Logged in", target: "Dashboard", type: "login" },
+  { id: "AUD-004", timestamp: "2026-05-25T14:20:00Z", actor: "Admin User", action: "Invited new user", target: "new.nurse@school.edu", type: "user_action" },
+  { id: "AUD-005", timestamp: "2026-05-24T11:00:00Z", actor: "Admin User", action: "Bulk imported students", target: "45 records", type: "import" },
+];
+
+export const adminRecentActivity = [
+  { id: "ACT-001", title: "New Clinic Staff Invited", time: "2 hours ago", type: "user" },
+  { id: "ACT-002", title: "Emergency Protocol Updated", time: "5 hours ago", type: "system" },
+  { id: "ACT-003", title: "Bulk Import Completed", time: "1 day ago", type: "data" },
+  { id: "ACT-004", title: "System Maintenance", time: "2 days ago", type: "system" },
+];
+

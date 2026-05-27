@@ -307,11 +307,11 @@ export default function ReportsPage() {
             placeholder="Search reports..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-10"
+            className="pl-9 h-10 rounded-full bg-muted/50 border-transparent"
           />
         </div>
         <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-40 h-10">
+          <SelectTrigger className="w-40 h-10 rounded-full bg-muted/50 border-transparent">
             <SelectValue placeholder="Type" />
           </SelectTrigger>
           <SelectContent>

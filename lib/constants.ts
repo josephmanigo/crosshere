@@ -7,6 +7,9 @@ import {
   Stethoscope,
   BarChart3,
   FileText,
+  UploadCloud,
+  Mail,
+  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -149,3 +152,30 @@ export const notificationTypes = {
   reminder: { label: "Reminder", color: "text-emerald-500", bgColor: "bg-emerald-500/10" },
 } as const;
 
+// ── Admin Navigation ──────────────────────────────────────────────────────────
+export const adminNavItems: NavItem[] = [
+  { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { label: "Users", href: "/admin/users", icon: Users },
+  { label: "Bulk Import", href: "/admin/import", icon: UploadCloud },
+  { label: "Invitations", href: "/admin/invitations", icon: Mail },
+  { label: "Audit Logs", href: "/admin/audit", icon: ShieldCheck },
+  { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+  { label: "Settings", href: "/admin/settings", icon: Settings },
+];
+
+export const adminUserStatusConfig = {
+  active: {
+    label: "Active",
+    className: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
+  },
+  pending: {
+    label: "Pending",
+    className: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+  },
+  inactive: {
+    label: "Inactive",
+    className: "bg-gray-500/15 text-gray-700 dark:text-gray-400",
+  },
+} as const;
+
+export type AdminUserStatus = keyof typeof adminUserStatusConfig;
