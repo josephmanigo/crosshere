@@ -439,13 +439,13 @@ export const emergencyContacts: EmergencyContact[] = [
 
 // ── Symptom Checker Data ────────────────────────────────────────────────────
 export const symptomBodyAreas = [
-  { id: "head", label: "Head & Neck", icon: "🧠", symptoms: ["Headache", "Dizziness", "Blurred vision", "Sore throat", "Neck stiffness"] },
-  { id: "chest", label: "Chest", icon: "❤️", symptoms: ["Chest pain", "Shortness of breath", "Rapid heartbeat", "Cough", "Wheezing"] },
-  { id: "stomach", label: "Stomach", icon: "🫃", symptoms: ["Nausea", "Stomach pain", "Vomiting", "Diarrhea", "Loss of appetite"] },
-  { id: "skin", label: "Skin", icon: "🩹", symptoms: ["Rash", "Hives", "Itching", "Swelling", "Bruising"] },
-  { id: "limbs", label: "Arms & Legs", icon: "💪", symptoms: ["Joint pain", "Muscle ache", "Swelling", "Numbness", "Weakness"] },
-  { id: "general", label: "General", icon: "🌡️", symptoms: ["Fever", "Fatigue", "Chills", "Sweating", "Fainting"] },
-  { id: "mental", label: "Mental / Emotional", icon: "🧘", symptoms: ["Anxiety", "Panic attack", "Difficulty breathing", "Trembling", "Rapid heartbeat"] },
+  { id: "head", label: "Head & Neck", icon: "brain", symptoms: ["Headache", "Dizziness", "Blurred vision", "Sore throat", "Neck stiffness"] },
+  { id: "chest", label: "Chest", icon: "heart", symptoms: ["Chest pain", "Shortness of breath", "Rapid heartbeat", "Cough", "Wheezing"] },
+  { id: "stomach", label: "Stomach", icon: "flame", symptoms: ["Nausea", "Stomach pain", "Vomiting", "Diarrhea", "Loss of appetite"] },
+  { id: "skin", label: "Skin", icon: "sparkles", symptoms: ["Rash", "Hives", "Itching", "Swelling", "Bruising"] },
+  { id: "limbs", label: "Arms & Legs", icon: "activity", symptoms: ["Joint pain", "Muscle ache", "Swelling", "Numbness", "Weakness"] },
+  { id: "general", label: "General", icon: "alert-circle", symptoms: ["Fever", "Fatigue", "Chills", "Sweating", "Fainting"] },
+  { id: "mental", label: "Mental / Emotional", icon: "smile", symptoms: ["Anxiety", "Panic attack", "Difficulty breathing", "Trembling", "Rapid heartbeat"] },
 ];
 
 export const severityLevels = [

@@ -8,12 +8,12 @@ import {
   UploadCloud, 
   FileSpreadsheet, 
   CheckCircle2, 
-  AlertCircle,
   XCircle,
   ArrowRight,
   Download,
   AlertTriangle,
-  RefreshCw
+  RefreshCw,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,48 +27,172 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { bulkImportStudents } from "@/lib/actions/students";
+import { toast } from "sonner";
 
 type ImportStep = "upload" | "preview" | "importing" | "result";
 
-const mockPreviewData = [
-  { id: 1, name: "Alice Johnson", email: "alice@school.edu", role: "student", status: "valid" },
-  { id: 2, name: "Bob Smith", email: "bob@school.edu", role: "student", status: "valid" },
-  { id: 3, name: "Carol Davis", email: "invalid-email", role: "parent", status: "invalid", error: "Invalid email format" },
-  { id: 4, name: "David Wilson", email: "david@school.edu", role: "unknown", status: "invalid", error: "Invalid role" },
-  { id: 5, name: "Eve Brown", email: "eve@school.edu", role: "student", status: "duplicate", warning: "Email already exists" },
-];
+interface ParsedStudent {
+  student_number: string;
+  grade: string;
+  section: string;
+  blood_type: string;
+  allergies: string[];
+  conditions: string[];
+  status: "valid" | "invalid";
+  error?: string;
+}
 
 export default function BulkImportPage() {
   const [step, setStep] = React.useState<ImportStep>("upload");
   const [progress, setProgress] = React.useState(0);
+  const [fileName, setFileName] = React.useState("");
+  const [parsedData, setParsedData] = React.useState<ParsedStudent[]>([]);
+  const [validCount, setValidCount] = React.useState(0);
+  const [invalidCount, setInvalidCount] = React.useState(0);
+  
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const parseCSV = (text: string) => {
+    const lines = text.split(/\r?\n/).map(line => line.trim()).filter(line => line.length > 0);
+    if (lines.length < 2) {
+      toast.error("CSV file must contain a header row and at least one data row.");
+      return;
+    }
+
+    const headers = lines[0].split(",").map(h => h.trim().replace(/"/g, "").toLowerCase());
+    
+    const numIdx = headers.indexOf("student_number");
+    const gradeIdx = headers.indexOf("grade");
+    const secIdx = headers.indexOf("section");
+    const bloodIdx = headers.indexOf("blood_type");
+    const allergyIdx = headers.indexOf("allergies");
+    const condIdx = headers.indexOf("conditions");
+
+    if (numIdx === -1 || gradeIdx === -1 || secIdx === -1) {
+      toast.error("Missing required headers: student_number, grade, section");
+      return;
+    }
+
+    const students: ParsedStudent[] = [];
+    let valid = 0;
+    let invalid = 0;
+
+    for (let i = 1; i < lines.length; i++) {
+      // Very basic comma-split regex supporting quotes for arrays
+      const columns = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ""));
+      
+      const studentNum = columns[numIdx] || "";
+      const gradeVal = columns[gradeIdx] || "";
+      const secVal = columns[secIdx] || "";
+      const bloodType = bloodIdx !== -1 ? columns[bloodIdx] || "" : "";
+      
+      const allergiesRaw = allergyIdx !== -1 ? columns[allergyIdx] || "" : "";
+      const allergies = allergiesRaw ? allergiesRaw.split(";").map(a => a.trim()).filter(Boolean) : [];
+
+      const condsRaw = condIdx !== -1 ? columns[condIdx] || "" : "";
+      const conditions = condsRaw ? condsRaw.split(";").map(c => c.trim()).filter(Boolean) : [];
+
+      let status: "valid" | "invalid" = "valid";
+      let error = "";
+
+      if (!studentNum) {
+        status = "invalid";
+        error = "Missing Student Number";
+      } else if (!gradeVal) {
+        status = "invalid";
+        error = "Missing Grade";
+      } else if (!secVal) {
+        status = "invalid";
+        error = "Missing Section";
+      }
+
+      if (status === "valid") valid++;
+      else invalid++;
+
+      students.push({
+        student_number: studentNum,
+        grade: gradeVal,
+        section: secVal,
+        blood_type: bloodType,
+        allergies,
+        conditions,
+        status,
+        error
+      });
+    }
+
+    setParsedData(students);
+    setValidCount(valid);
+    setInvalidCount(invalid);
+    setStep("preview");
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setStep("preview");
+      const file = e.target.files[0];
+      setFileName(file.name);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target?.result as string;
+        parseCSV(text);
+      };
+      reader.readAsText(file);
     }
   };
 
-  const startImport = () => {
+  const startImport = async () => {
     setStep("importing");
-    setProgress(0);
-    
-    // Simulate import progress
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(() => setStep("result"), 500);
-          return 100;
-        }
-        return prev + 5;
-      });
-    }, 100);
+    setProgress(10);
+
+    const validStudents = parsedData.filter(s => s.status === "valid").map(s => ({
+      student_number: s.student_number,
+      grade: s.grade,
+      section: s.section,
+      blood_type: s.blood_type || null,
+      allergies: s.allergies,
+      conditions: s.conditions
+    }));
+
+    if (validStudents.length === 0) {
+      toast.error("No valid students found to import.");
+      setStep("preview");
+      return;
+    }
+
+    try {
+      setProgress(40);
+      await bulkImportStudents(validStudents as any);
+      setProgress(90);
+      setTimeout(() => {
+        setProgress(100);
+        setStep("result");
+        toast.success("Successfully imported student profiles!");
+      }, 400);
+    } catch (err: any) {
+      toast.error(err.message || "Bulk import failed");
+      setStep("preview");
+    }
   };
 
   const resetFlow = () => {
     setStep("upload");
     setProgress(0);
+    setParsedData([]);
+    setFileName("");
+  };
+
+  const downloadTemplate = () => {
+    const csvContent = "data:text/csv;charset=utf-8,student_number,grade,section,blood_type,allergies,conditions\n"
+      + "2026-10A-001,Grade 10,Section A,O+,Peanuts;Penicillin,Mild Asthma\n"
+      + "2026-11B-002,Grade 11,Section B,A+,None,Diabetes";
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "crosshere_student_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -82,7 +206,7 @@ export default function BulkImportPage() {
       <motion.div variants={staggerItem}>
         <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Bulk Import</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Import students, parents, or staff from CSV or Excel files.
+          Import students or staff health profiles directly from a CSV template.
         </p>
       </motion.div>
 
@@ -135,19 +259,18 @@ export default function BulkImportPage() {
                       </div>
                       <h3 className="text-xl font-semibold mb-2">Click to upload or drag and drop</h3>
                       <p className="text-sm text-muted-foreground mb-6">
-                        Support for CSV, XLS, and XLSX files up to 10MB
+                        Upload your CSV template with students data
                       </p>
                       
                       <div className="flex justify-center gap-3">
                         <Badge variant="outline" className="bg-background">.csv</Badge>
-                        <Badge variant="outline" className="bg-background">.xlsx</Badge>
                       </div>
                       
                       <input 
                         type="file" 
                         className="hidden" 
                         ref={fileInputRef}
-                        accept=".csv,.xlsx,.xls"
+                        accept=".csv"
                         onChange={handleFileSelect}
                       />
                     </div>
@@ -155,7 +278,7 @@ export default function BulkImportPage() {
                     <div className="mt-8 flex items-center gap-2 text-sm text-muted-foreground">
                       <FileSpreadsheet className="size-4" />
                       Need a template? 
-                      <a href="#" className="text-crosshere hover:underline font-medium">Download CSV Template</a>
+                      <button onClick={downloadTemplate} className="text-crosshere hover:underline font-medium">Download CSV Template</button>
                     </div>
                   </motion.div>
                 )}
@@ -171,55 +294,56 @@ export default function BulkImportPage() {
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div>
-                        <h3 className="text-lg font-semibold">Data Preview</h3>
-                        <p className="text-sm text-muted-foreground">Review the parsed data before importing. We found 2 errors.</p>
+                        <h3 className="text-lg font-semibold">Data Preview ({fileName})</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Review the parsed records. We found {validCount} valid and {invalidCount} invalid rows.
+                        </p>
                       </div>
                       <div className="flex gap-3">
-                        <Button variant="outline" onClick={() => setStep("upload")}>Cancel</Button>
-                        <Button className="bg-crosshere hover:bg-crosshere-crimson text-white" onClick={startImport}>
-                          Import 3 Valid Rows
+                        <Button variant="outline" onClick={resetFlow}>Cancel</Button>
+                        <Button className="bg-crosshere hover:bg-crosshere/90 text-white" disabled={validCount === 0} onClick={startImport}>
+                          Import {validCount} Valid Rows
                         </Button>
                       </div>
                     </div>
 
-                    <div className="border border-border/50 rounded-xl overflow-hidden flex-1">
+                    <div className="border border-border/50 rounded-xl overflow-hidden flex-1 max-h-[350px] overflow-y-auto">
                       <Table>
                         <TableHeader className="bg-muted/30">
                           <TableRow className="hover:bg-transparent">
                             <TableHead className="w-[40px]"></TableHead>
-                            <TableHead>Full Name</TableHead>
-                            <TableHead>Email Address</TableHead>
-                            <TableHead>Role</TableHead>
+                            <TableHead>Student Number</TableHead>
+                            <TableHead>Grade & Section</TableHead>
+                            <TableHead>Blood Type</TableHead>
+                            <TableHead>Allergies / Conditions</TableHead>
                             <TableHead>Validation Status</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {mockPreviewData.map((row) => (
-                            <TableRow key={row.id} className="hover:bg-muted/20">
+                          {parsedData.map((row, idx) => (
+                            <TableRow key={idx} className="hover:bg-muted/20">
                               <TableCell className="p-0 relative">
                                 <div className={cn(
                                   "absolute left-0 top-0 bottom-0 w-1",
-                                  row.status === "valid" ? "bg-emerald-500" :
-                                  row.status === "invalid" ? "bg-red-500" : "bg-amber-500"
+                                  row.status === "valid" ? "bg-emerald-500" : "bg-red-500"
                                 )} />
                               </TableCell>
-                              <TableCell className="font-medium">{row.name}</TableCell>
-                              <TableCell className={cn(row.error?.includes("email") && "text-red-500 font-medium")}>
-                                {row.email}
+                              <TableCell className="font-medium">{row.student_number || "—"}</TableCell>
+                              <TableCell>{row.grade} {row.section}</TableCell>
+                              <TableCell>{row.blood_type || "—"}</TableCell>
+                              <TableCell className="text-xs max-w-xs truncate">
+                                {row.allergies.length > 0 && `Allergies: ${row.allergies.join(", ")}`}
+                                {row.conditions.length > 0 && ` | Conditions: ${row.conditions.join(", ")}`}
+                                {row.allergies.length === 0 && row.conditions.length === 0 && "None"}
                               </TableCell>
-                              <TableCell className="capitalize">{row.role}</TableCell>
                               <TableCell>
                                 {row.status === "valid" ? (
                                   <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
                                     <CheckCircle2 className="size-3.5" /> Ready
                                   </div>
-                                ) : row.status === "invalid" ? (
+                                ) : (
                                   <div className="flex items-center gap-1.5 text-red-600 dark:text-red-400 text-xs font-medium">
                                     <XCircle className="size-3.5" /> {row.error}
-                                  </div>
-                                ) : (
-                                  <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 text-xs font-medium">
-                                    <AlertTriangle className="size-3.5" /> {row.warning}
                                   </div>
                                 )}
                               </TableCell>
@@ -242,7 +366,7 @@ export default function BulkImportPage() {
                   >
                     <div className="w-full max-w-md space-y-6 text-center">
                       <div className="size-16 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto relative">
-                        <RefreshCw className="size-8 text-blue-500 animate-spin" />
+                        <Loader2 className="size-8 text-blue-500 animate-spin" />
                       </div>
                       <div>
                         <h3 className="text-xl font-semibold mb-2">Importing Data...</h3>
@@ -273,27 +397,23 @@ export default function BulkImportPage() {
                     </div>
                     <h3 className="text-2xl font-bold mb-2">Import Complete</h3>
                     <p className="text-muted-foreground text-center max-w-md mb-8">
-                      Successfully processed the bulk import file. Invitations have been sent to new users automatically.
+                      Successfully processed the bulk import file. Student health profiles have been updated and are now live in the system.
                     </p>
 
                     <div className="grid grid-cols-2 gap-4 w-full max-w-md mb-8">
                       <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-center">
                         <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400 mb-1">Successfully Imported</p>
-                        <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-300">3</p>
+                        <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-300">{validCount}</p>
                       </div>
                       <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-center">
                         <p className="text-sm font-medium text-red-600 dark:text-red-400 mb-1">Failed / Skipped</p>
-                        <p className="text-3xl font-bold text-red-700 dark:text-red-300">2</p>
+                        <p className="text-3xl font-bold text-red-700 dark:text-red-300">{invalidCount}</p>
                       </div>
                     </div>
 
                     <div className="flex gap-4">
                       <Button variant="outline" onClick={resetFlow}>
                         Import Another File
-                      </Button>
-                      <Button className="bg-crosshere hover:bg-crosshere-crimson text-white">
-                        <Download className="mr-2 size-4" />
-                        Download Error Report
                       </Button>
                     </div>
                   </motion.div>

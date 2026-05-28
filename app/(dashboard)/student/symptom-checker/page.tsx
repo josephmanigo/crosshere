@@ -10,6 +10,7 @@ import { GlassCard, GlassCardContent } from "@/components/shared/glass-card";
 import { staggerContainer, staggerItem, cardSlideLeft } from "@/lib/animations";
 import { symptomBodyAreas, severityLevels } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+import { IconRenderer } from "@/components/shared/icon-mapper";
 import {
   Stethoscope,
   ArrowLeft,
@@ -138,7 +139,15 @@ export default function SymptomCheckerPage() {
                     setSelectedSymptoms([]);
                   }}
                 >
-                  <span className="text-2xl">{area.icon}</span>
+                  <div className={cn(
+                    "size-9 rounded-xl flex items-center justify-center bg-muted/40",
+                    selectedArea === area.id ? "bg-crosshere/10" : ""
+                  )}>
+                    <IconRenderer 
+                      name={area.icon} 
+                      className={cn("size-5", selectedArea === area.id ? "text-crosshere" : "text-muted-foreground")} 
+                    />
+                  </div>
                   <span className={cn(
                     "text-sm font-medium",
                     selectedArea === area.id ? "text-crosshere" : "text-foreground"

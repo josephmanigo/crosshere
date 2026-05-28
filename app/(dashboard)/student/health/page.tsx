@@ -165,10 +165,18 @@ export default function HealthProfilePage() {
                       <p className="text-xs text-muted-foreground">{g.relation}</p>
                     </div>
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="icon-xs">
+                      <Button 
+                        variant="ghost" 
+                        size="icon-xs"
+                        onClick={() => window.location.href = `tel:${g.phone}`}
+                      >
                         <Phone className="size-3.5 text-crosshere" />
                       </Button>
-                      <Button variant="ghost" size="icon-xs">
+                      <Button 
+                        variant="ghost" 
+                        size="icon-xs"
+                        onClick={() => window.location.href = `mailto:${g.email}`}
+                      >
                         <Mail className="size-3.5 text-muted-foreground" />
                       </Button>
                     </div>

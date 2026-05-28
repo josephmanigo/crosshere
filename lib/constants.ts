@@ -80,14 +80,14 @@ export type IncidentStatus = keyof typeof incidentStatusConfig;
 
 // ── Symptom Categories ──────────────────────────────────────────────────────
 export const symptomCategories = [
-  { id: "head", label: "Head & Neurological", icon: "🧠" },
-  { id: "respiratory", label: "Respiratory", icon: "🫁" },
-  { id: "cardiac", label: "Cardiac & Chest", icon: "❤️" },
-  { id: "abdominal", label: "Abdominal", icon: "🫃" },
-  { id: "musculoskeletal", label: "Musculoskeletal", icon: "🦴" },
-  { id: "skin", label: "Skin & Allergic", icon: "🩹" },
-  { id: "mental", label: "Mental Health", icon: "🧘" },
-  { id: "other", label: "Other / General", icon: "📋" },
+  { id: "head", label: "Head & Neurological", icon: "brain" },
+  { id: "respiratory", label: "Respiratory", icon: "wind" },
+  { id: "cardiac", label: "Cardiac & Chest", icon: "heart" },
+  { id: "abdominal", label: "Abdominal", icon: "flame" },
+  { id: "musculoskeletal", label: "Musculoskeletal", icon: "activity" },
+  { id: "skin", label: "Skin & Allergic", icon: "sparkles" },
+  { id: "mental", label: "Mental Health", icon: "smile" },
+  { id: "other", label: "Other / General", icon: "help-circle" },
 ] as const;
 
 // ── Emergency Types ─────────────────────────────────────────────────────────
@@ -125,15 +125,15 @@ export interface EmergencyTypeItem {
 }
 
 export const emergencyTypeItems: EmergencyTypeItem[] = [
-  { id: "asthma", label: "Asthma Attack", icon: "🫁", color: "text-blue-600 dark:text-blue-400", bgColor: "bg-blue-500/10" },
-  { id: "fainting", label: "Fainting", icon: "😵", color: "text-purple-600 dark:text-purple-400", bgColor: "bg-purple-500/10" },
-  { id: "injury", label: "Injury", icon: "🩹", color: "text-orange-600 dark:text-orange-400", bgColor: "bg-orange-500/10" },
-  { id: "chest-pain", label: "Chest Pain", icon: "❤️‍🩹", color: "text-red-600 dark:text-red-400", bgColor: "bg-red-500/10" },
-  { id: "allergic", label: "Allergic Reaction", icon: "🤧", color: "text-amber-600 dark:text-amber-400", bgColor: "bg-amber-500/10" },
-  { id: "seizure", label: "Seizure", icon: "⚡", color: "text-yellow-600 dark:text-yellow-400", bgColor: "bg-yellow-500/10" },
-  { id: "bleeding", label: "Severe Bleeding", icon: "🩸", color: "text-red-600 dark:text-red-400", bgColor: "bg-red-500/10" },
-  { id: "anxiety", label: "Panic / Anxiety", icon: "💭", color: "text-teal-600 dark:text-teal-400", bgColor: "bg-teal-500/10" },
-  { id: "other", label: "Other", icon: "🆘", color: "text-gray-600 dark:text-gray-400", bgColor: "bg-gray-500/10" },
+  { id: "asthma", label: "Asthma Attack", icon: "wind", color: "text-blue-600 dark:text-blue-400", bgColor: "bg-blue-500/10" },
+  { id: "fainting", label: "Fainting", icon: "shield-alert", color: "text-purple-600 dark:text-purple-400", bgColor: "bg-purple-500/10" },
+  { id: "injury", label: "Injury", icon: "activity", color: "text-orange-600 dark:text-orange-400", bgColor: "bg-orange-500/10" },
+  { id: "chest-pain", label: "Chest Pain", icon: "heart", color: "text-red-600 dark:text-red-400", bgColor: "bg-red-500/10" },
+  { id: "allergic", label: "Allergic Reaction", icon: "alert-circle", color: "text-amber-600 dark:text-amber-400", bgColor: "bg-amber-500/10" },
+  { id: "seizure", label: "Seizure", icon: "zap", color: "text-yellow-600 dark:text-yellow-400", bgColor: "bg-yellow-500/10" },
+  { id: "bleeding", label: "Severe Bleeding", icon: "droplets", color: "text-red-600 dark:text-red-400", bgColor: "bg-red-500/10" },
+  { id: "anxiety", label: "Panic / Anxiety", icon: "smile", color: "text-teal-600 dark:text-teal-400", bgColor: "bg-teal-500/10" },
+  { id: "other", label: "Other", icon: "help-circle", color: "text-gray-600 dark:text-gray-400", bgColor: "bg-gray-500/10" },
 ];
 
 // ── Symptom Checker Steps ───────────────────────────────────────────────

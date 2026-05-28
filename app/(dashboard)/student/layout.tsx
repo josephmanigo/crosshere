@@ -16,7 +16,7 @@ export default function MobileLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen pb-20 bg-background">
+    <div className="min-h-screen pb-20 bg-transparent">
       <main className="px-4 pt-[env(safe-area-inset-top)] pb-4 max-w-md mx-auto">
         {children}
       </main>

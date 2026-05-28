@@ -67,130 +67,130 @@
 
 /* ── Light Mode ──────────────────────────────────────────────────────────── */
 :root {
-  --radius: 0.75rem;
+  --radius: 0.85rem;
 
-  /* Base surfaces — warm-tinted whites */
-  --background: oklch(0.985 0.002 80);
-  --foreground: oklch(0.15 0.005 60);
-  --card: oklch(1 0 0 / 80%);
-  --card-foreground: oklch(0.15 0.005 60);
-  --popover: oklch(0.99 0.001 80);
-  --popover-foreground: oklch(0.15 0.005 60);
+  /* Base surfaces — soft Apple-style cream/blush tint */
+  --background: oklch(0.985 0.005 15);
+  --foreground: oklch(0.18 0.05 15);
+  --card: oklch(1 0.002 15 / 80%);
+  --card-foreground: oklch(0.18 0.05 15);
+  --popover: oklch(0.99 0.003 15);
+  --popover-foreground: oklch(0.18 0.05 15);
 
-  /* Primary — CROSSHERE Red */
-  --primary: oklch(0.5 0.2 25);
-  --primary-foreground: oklch(0.99 0 0);
+  /* Primary — Deep Crimson (#7A0010) */
+  --primary: oklch(0.35 0.16 20);
+  --primary-foreground: oklch(0.92 0.04 15);
 
-  /* Secondary — soft warm gray */
-  --secondary: oklch(0.96 0.003 80);
-  --secondary-foreground: oklch(0.2 0.005 60);
+  /* Secondary — very soft cream-rose */
+  --secondary: oklch(0.95 0.015 15);
+  --secondary-foreground: oklch(0.35 0.16 20);
 
   /* Muted */
-  --muted: oklch(0.96 0.003 80);
-  --muted-foreground: oklch(0.5 0.01 60);
+  --muted: oklch(0.95 0.01 15);
+  --muted-foreground: oklch(0.45 0.03 15);
 
   /* Accent */
-  --accent: oklch(0.96 0.003 80);
-  --accent-foreground: oklch(0.2 0.005 60);
+  --accent: oklch(0.95 0.015 15);
+  --accent-foreground: oklch(0.35 0.16 20);
 
   /* Destructive */
-  --destructive: oklch(0.55 0.22 25);
+  --destructive: oklch(0.45 0.16 20);
 
-  /* Borders & inputs */
-  --border: oklch(0.91 0.003 80);
-  --input: oklch(0.91 0.003 80);
-  --ring: oklch(0.5 0.2 25);
+  /* Borders & inputs — premium thin rose line */
+  --border: oklch(0.90 0.02 15);
+  --input: oklch(0.90 0.02 15);
+  --ring: oklch(0.35 0.16 20);
 
   /* Charts — brand-derived palette */
-  --chart-1: oklch(0.55 0.22 25);
-  --chart-2: oklch(0.6 0.15 15);
-  --chart-3: oklch(0.65 0.1 40);
-  --chart-4: oklch(0.55 0.08 250);
-  --chart-5: oklch(0.7 0.05 80);
+  --chart-1: oklch(0.35 0.16 20);
+  --chart-2: oklch(0.45 0.14 15);
+  --chart-3: oklch(0.55 0.1 40);
+  --chart-4: oklch(0.45 0.08 250);
+  --chart-5: oklch(0.65 0.05 80);
 
   /* Sidebar */
-  --sidebar: oklch(0.98 0.002 80);
-  --sidebar-foreground: oklch(0.15 0.005 60);
-  --sidebar-primary: oklch(0.5 0.2 25);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.96 0.003 80);
-  --sidebar-accent-foreground: oklch(0.2 0.005 60);
-  --sidebar-border: oklch(0.92 0.003 80);
-  --sidebar-ring: oklch(0.5 0.2 25);
+  --sidebar: oklch(0.985 0.004 15);
+  --sidebar-foreground: oklch(0.18 0.05 15);
+  --sidebar-primary: oklch(0.35 0.16 20);
+  --sidebar-primary-foreground: oklch(0.92 0.04 15);
+  --sidebar-accent: oklch(0.95 0.015 15);
+  --sidebar-accent-foreground: oklch(0.35 0.16 20);
+  --sidebar-border: oklch(0.92 0.015 15);
+  --sidebar-ring: oklch(0.35 0.16 20);
 
   /* CROSSHERE brand tokens */
-  --crosshere: oklch(0.55 0.22 25);
-  --crosshere-foreground: oklch(0.99 0 0);
-  --crosshere-crimson: oklch(0.6 0.18 15);
+  --crosshere: oklch(0.35 0.16 20);
+  --crosshere-foreground: oklch(0.92 0.04 15);
+  --crosshere-crimson: oklch(0.25 0.12 20);
   --crosshere-rose: oklch(0.92 0.04 15);
-  --surface: oklch(0.97 0.002 80);
-  --glass: oklch(1 0 0 / 60%);
-  --glass-border: oklch(0 0 0 / 6%);
-  --glass-blur: 16px;
-  --glass-shadow: 0 4px 24px oklch(0 0 0 / 6%);
+  --surface: oklch(0.97 0.008 15);
+  --glass: oklch(1 0.002 15 / 60%);
+  --glass-border: oklch(0.35 0.16 20 / 8%);
+  --glass-blur: 20px;
+  --glass-shadow: 0 4px 24px oklch(0.18 0.05 15 / 4%);
 }
 
 /* ── Dark Mode ───────────────────────────────────────────────────────────── */
 .dark {
-  /* Base surfaces — deep graphite with warm undertone */
-  --background: oklch(0.155 0.005 60);
-  --foreground: oklch(0.95 0.005 80);
-  --card: oklch(0.2 0.006 60 / 70%);
-  --card-foreground: oklch(0.95 0.005 80);
-  --popover: oklch(0.2 0.006 60);
-  --popover-foreground: oklch(0.95 0.005 80);
+  /* Base surfaces — deep dark wine/burgundy (#140003) */
+  --background: oklch(0.12 0.02 15);
+  --foreground: oklch(0.92 0.04 15);
+  --card: oklch(0.16 0.03 15 / 70%);
+  --card-foreground: oklch(0.92 0.04 15);
+  --popover: oklch(0.16 0.03 15);
+  --popover-foreground: oklch(0.92 0.04 15);
 
-  /* Primary — lighter red for dark backgrounds */
-  --primary: oklch(0.65 0.2 25);
-  --primary-foreground: oklch(0.12 0 0);
+  /* Primary — slightly brighter crimson for dark contrast */
+  --primary: oklch(0.48 0.18 20);
+  --primary-foreground: oklch(0.92 0.04 15);
 
   /* Secondary */
-  --secondary: oklch(0.25 0.006 60);
-  --secondary-foreground: oklch(0.95 0.005 80);
+  --secondary: oklch(0.20 0.04 15);
+  --secondary-foreground: oklch(0.92 0.04 15);
 
   /* Muted */
-  --muted: oklch(0.25 0.006 60);
-  --muted-foreground: oklch(0.65 0.01 60);
+  --muted: oklch(0.20 0.03 15);
+  --muted-foreground: oklch(0.65 0.03 15);
 
   /* Accent */
-  --accent: oklch(0.25 0.006 60);
-  --accent-foreground: oklch(0.95 0.005 80);
+  --accent: oklch(0.20 0.04 15);
+  --accent-foreground: oklch(0.92 0.04 15);
 
   /* Destructive */
-  --destructive: oklch(0.65 0.2 25);
+  --destructive: oklch(0.48 0.18 20);
 
-  /* Borders — subtle warm glass edges */
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.65 0.2 25);
+  /* Borders — translucent soft wine lines */
+  --border: oklch(0.92 0.04 15 / 15%);
+  --input: oklch(0.92 0.04 15 / 15%);
+  --ring: oklch(0.48 0.18 20);
 
   /* Charts */
-  --chart-1: oklch(0.65 0.2 25);
-  --chart-2: oklch(0.6 0.15 15);
-  --chart-3: oklch(0.7 0.1 40);
-  --chart-4: oklch(0.6 0.08 250);
-  --chart-5: oklch(0.75 0.05 80);
+  --chart-1: oklch(0.48 0.18 20);
+  --chart-2: oklch(0.45 0.14 15);
+  --chart-3: oklch(0.55 0.1 40);
+  --chart-4: oklch(0.45 0.08 250);
+  --chart-5: oklch(0.65 0.05 80);
 
   /* Sidebar */
-  --sidebar: oklch(0.18 0.006 60);
-  --sidebar-foreground: oklch(0.95 0.005 80);
-  --sidebar-primary: oklch(0.65 0.2 25);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.25 0.006 60);
-  --sidebar-accent-foreground: oklch(0.95 0.005 80);
-  --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.65 0.2 25);
+  --sidebar: oklch(0.14 0.025 15);
+  --sidebar-foreground: oklch(0.92 0.04 15);
+  --sidebar-primary: oklch(0.48 0.18 20);
+  --sidebar-primary-foreground: oklch(0.92 0.04 15);
+  --sidebar-accent: oklch(0.20 0.04 15);
+  --sidebar-accent-foreground: oklch(0.92 0.04 15);
+  --sidebar-border: oklch(0.92 0.04 15 / 10%);
+  --sidebar-ring: oklch(0.48 0.18 20);
 
   /* CROSSHERE brand tokens */
-  --crosshere: oklch(0.65 0.2 25);
-  --crosshere-foreground: oklch(0.99 0 0);
-  --crosshere-crimson: oklch(0.55 0.16 15);
-  --crosshere-rose: oklch(0.28 0.05 15);
-  --surface: oklch(0.2 0.005 60);
-  --glass: oklch(0.2 0 0 / 40%);
-  --glass-border: oklch(1 0 0 / 8%);
+  --crosshere: oklch(0.48 0.18 20);
+  --crosshere-foreground: oklch(0.92 0.04 15);
+  --crosshere-crimson: oklch(0.25 0.12 20);
+  --crosshere-rose: oklch(0.22 0.04 15);
+  --surface: oklch(0.18 0.03 15);
+  --glass: oklch(0.12 0.02 15 / 40%);
+  --glass-border: oklch(0.92 0.04 15 / 12%);
   --glass-blur: 20px;
-  --glass-shadow: 0 4px 24px oklch(0 0 0 / 25%);
+  --glass-shadow: 0 4px 24px oklch(0.12 0.02 15 / 45%);
 }
 
 /* ── Base Layer ──────────────────────────────────────────────────────────── */

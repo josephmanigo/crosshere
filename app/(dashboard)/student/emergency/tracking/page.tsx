@@ -103,7 +103,12 @@ export default function EmergencyTrackingPage() {
                   <span className="text-sm font-semibold text-crosshere">ETA: {data.responder.eta}</span>
                 </div>
               </div>
-              <Button variant="outline" size="icon" className="rounded-full shrink-0">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="rounded-full shrink-0"
+                onClick={() => window.location.href = `tel:${(data.responder as any).phone || "+15551002000"}`}
+              >
                 <Phone className="size-4 text-crosshere" />
               </Button>
             </motion.div>

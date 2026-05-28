@@ -78,7 +78,11 @@ export function HealthCard() {
                 <p className="text-xs text-muted-foreground mb-1">Emergency Contact</p>
                 <div className="flex items-center justify-between">
                   <span className="text-sm">{studentProfile.guardian.name} ({studentProfile.guardian.relation})</span>
-                  <Button variant="ghost" size="icon-xs">
+                  <Button 
+                    variant="ghost" 
+                    size="icon-xs"
+                    onClick={() => window.location.href = `tel:${studentProfile.guardian.phone}`}
+                  >
                     <Phone className="size-3.5 text-crosshere" />
                   </Button>
                 </div>

@@ -12,9 +12,13 @@ import { QuickActions } from "@/components/student/quick-actions";
 import { GlassCard, GlassCardContent } from "@/components/shared/glass-card";
 import { PulseIndicator } from "@/components/shared/pulse-indicator";
 import { staggerContainer, staggerItem } from "@/lib/animations";
-import { studentProfile, studentNotifications, clinicStatus } from "@/lib/mock-data";
-import { CheckCircle2, Shield, ChevronRight, Clock, Bell } from "lucide-react";
+import { CheckCircle2, Shield, ChevronRight, Clock, Bell, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/auth-store";
+import { getMyStudentProfile } from "@/lib/actions/students";
+import { getMyNotifications } from "@/lib/actions/notifications";
+import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
+import { getStudentIncidents } from "@/lib/actions/incidents";
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -25,7 +29,59 @@ function getGreeting() {
 
 export default function StudentMobilePage() {
   const [emergencyOpen, setEmergencyOpen] = React.useState(false);
-  const unreadCount = studentNotifications.filter((n) => !n.read).length;
+  const [profile, setProfile] = React.useState<any>(null);
+  const [notifications, setNotifications] = React.useState<any[]>([]);
+  const [activeIncidents, setActiveIncidents] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  const user = useAuthStore((s) => s.user);
+  const authProfile = useAuthStore((s) => s.profile);
+
+  // Realtime notifications
+  const { unreadCount } = useRealtimeNotifications(user?.id, (newNotif) => {
+    setNotifications((prev) => [newNotif, ...prev]);
+  });
+
+  React.useEffect(() => {
+    async function loadData() {
+      try {
+        const [studentData, notifData] = await Promise.all([
+          getMyStudentProfile().catch(() => null),
+          getMyNotifications(10).catch(() => []),
+        ]);
+
+        setProfile(studentData);
+        setNotifications(notifData ?? []);
+
+        if (studentData?.id) {
+          const incidents = await getStudentIncidents(studentData.id).catch(() => []);
+          setActiveIncidents(incidents.filter((i: any) => i.status !== "resolved"));
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  const displayName = authProfile?.full_name?.split(" ")[0] ?? "Student";
+  const initials = (authProfile?.full_name ?? "S")
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  const actualUnread = notifications.filter((n) => !n.read).length + unreadCount;
+  const hasActiveEmergency = activeIncidents.length > 0;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="size-6 animate-spin text-crosshere" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -39,21 +95,21 @@ export default function StudentMobilePage() {
         <motion.div variants={staggerItem} className="flex items-center justify-between">
           <div>
             <p className="text-sm text-muted-foreground">{getGreeting()},</p>
-            <h1 className="text-xl font-semibold tracking-tight">{studentProfile.name.split(" ")[0]}</h1>
+            <h1 className="text-xl font-semibold tracking-tight">{displayName}</h1>
           </div>
           <div className="flex items-center gap-2">
-            {unreadCount > 0 && (
+            {actualUnread > 0 && (
               <Link href="/student/notifications" className="relative p-2">
                 <Bell className="size-5 text-muted-foreground" />
                 <span className="absolute top-1 right-1 size-4 rounded-full bg-crosshere text-white text-[9px] font-bold flex items-center justify-center">
-                  {unreadCount}
+                  {actualUnread > 9 ? "9+" : actualUnread}
                 </span>
               </Link>
             )}
             <Link href="/student/health">
               <Avatar className="size-10">
                 <AvatarFallback className="bg-crosshere/10 text-crosshere text-sm font-semibold">
-                  {studentProfile.initials}
+                  {initials}
                 </AvatarFallback>
               </Avatar>
             </Link>
@@ -63,14 +119,27 @@ export default function StudentMobilePage() {
         {/* ── Emergency Status ── */}
         <motion.div
           variants={staggerItem}
-          className="flex items-center gap-2.5 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/20 px-4 py-3"
+          className={cn(
+            "flex items-center gap-2.5 rounded-2xl border px-4 py-3",
+            hasActiveEmergency
+              ? "bg-red-500/10 dark:bg-red-500/15 border-red-500/20"
+              : "bg-emerald-500/10 dark:bg-emerald-500/15 border-emerald-500/20"
+          )}
         >
-          <Shield className="size-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <Shield className={cn("size-5 shrink-0", hasActiveEmergency ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400")} />
           <div className="flex-1">
-            <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">All Clear</p>
-            <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70">No active emergencies</p>
+            <p className={cn("text-sm font-medium", hasActiveEmergency ? "text-red-700 dark:text-red-300" : "text-emerald-700 dark:text-emerald-300")}>
+              {hasActiveEmergency ? "Active Emergency" : "All Clear"}
+            </p>
+            <p className={cn("text-xs", hasActiveEmergency ? "text-red-600/70 dark:text-red-400/70" : "text-emerald-600/70 dark:text-emerald-400/70")}>
+              {hasActiveEmergency
+                ? `${activeIncidents[0]?.type} — help is on the way`
+                : "No active emergencies"}
+            </p>
           </div>
-          <CheckCircle2 className="size-5 text-emerald-500 shrink-0" />
+          {hasActiveEmergency
+            ? <PulseIndicator color="red" size="md" />
+            : <CheckCircle2 className="size-5 text-emerald-500 shrink-0" />}
         </motion.div>
 
         {/* ── SOS Button ── */}
@@ -96,14 +165,14 @@ export default function StudentMobilePage() {
                   <div>
                     <p className="text-sm font-semibold">School Clinic</p>
                     <p className="text-xs text-muted-foreground">
-                      {clinicStatus.isOpen ? "Open now" : "Closed"} • {clinicStatus.hours}
+                      Open now • 7:30 AM — 4:00 PM
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Clock className="size-3" />
-                    <span>{clinicStatus.waitTime}</span>
+                    <span>~5 min</span>
                   </div>
                 </div>
               </div>
@@ -125,7 +194,7 @@ export default function StudentMobilePage() {
             </Link>
           </div>
           <div className="space-y-2">
-            {studentNotifications.slice(0, 3).map((item) => (
+            {notifications.slice(0, 3).map((item) => (
               <div
                 key={item.id}
                 className={cn(
@@ -140,11 +209,14 @@ export default function StudentMobilePage() {
                     {!item.read && <span className="size-1.5 rounded-full bg-crosshere shrink-0" />}
                     <p className={cn("text-sm truncate", !item.read && "font-semibold")}>{item.title}</p>
                   </div>
-                  <p className="text-xs text-muted-foreground truncate mt-0.5">{item.message}</p>
+                  <p className="text-xs text-muted-foreground truncate mt-0.5">{item.description}</p>
                 </div>
                 <Badge variant="outline" className="text-[10px] shrink-0 capitalize">{item.type}</Badge>
               </div>
             ))}
+            {notifications.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">No recent notifications</p>
+            )}
           </div>
         </motion.div>
       </motion.div>

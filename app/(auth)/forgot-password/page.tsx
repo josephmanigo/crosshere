@@ -3,23 +3,36 @@
 import * as React from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Mail, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Mail, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { fadeInUp, scaleIn } from "@/lib/animations";
+import { useAuthStore } from "@/store/auth-store";
 
 export default function ForgotPasswordPage() {
   const [submitted, setSubmitted] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
+  const [email, setEmail] = React.useState("");
+  const [formError, setFormError] = React.useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const resetPassword = useAuthStore((state) => state.resetPassword);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
+    setFormError("");
+
+    const { error } = await resetPassword(email);
+
+    if (error) {
       setLoading(false);
-      setSubmitted(true);
-    }, 1500);
+      setFormError(error);
+      return;
+    }
+
+    setLoading(false);
+    setSubmitted(true);
   };
 
   return (
@@ -46,14 +59,29 @@ export default function ForgotPasswordPage() {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Error Alert */}
+            {formError && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400"
+              >
+                <AlertCircle className="size-4 mt-0.5 shrink-0" />
+                {formError}
+              </motion.div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="reset-email">Email address</Label>
               <Input
                 id="reset-email"
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="nurse@school.edu"
                 className="h-11"
                 required
+                autoComplete="email"
               />
             </div>
 
@@ -89,7 +117,8 @@ export default function ForgotPasswordPage() {
           </div>
           <h2 className="text-2xl font-semibold tracking-tight mb-2">Check your email</h2>
           <p className="text-sm text-muted-foreground mb-8 max-w-xs mx-auto">
-            We&apos;ve sent a password reset link to your email. Please check your inbox and spam folder.
+            We&apos;ve sent a password reset link to{" "}
+            <strong>{email}</strong>. Please check your inbox and spam folder.
           </p>
           <div className="space-y-3">
             <Button

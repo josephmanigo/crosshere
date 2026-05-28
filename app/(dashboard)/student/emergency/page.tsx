@@ -12,6 +12,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Phone, MapPin } from "lucide-react";
 import Link from "next/link";
+import { IconRenderer } from "@/components/shared/icon-mapper";
+import { cn } from "@/lib/utils";
 
 export default function EmergencyPage() {
   const [flowOpen, setFlowOpen] = React.useState(false);
@@ -47,7 +49,9 @@ export default function EmergencyPage() {
                 className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-card/50 dark:bg-card/30 border border-border/30 active:scale-95 transition-transform min-h-[80px] justify-center"
                 onClick={() => setFlowOpen(true)}
               >
-                <span className="text-xl">{type.icon}</span>
+                <div className={cn("size-8 rounded-xl flex items-center justify-center bg-muted/40 mb-0.5", type.bgColor)}>
+                  <IconRenderer name={type.icon} className={type.color} size={18} />
+                </div>
                 <span className="text-[10px] font-medium text-muted-foreground text-center leading-tight">
                   {type.label}
                 </span>
@@ -96,7 +100,12 @@ export default function EmergencyPage() {
                       <p className="text-sm font-medium truncate">{contact.name}</p>
                       <p className="text-xs text-muted-foreground">{contact.relation}</p>
                     </div>
-                    <Button variant="ghost" size="icon-sm" className="text-crosshere shrink-0">
+                    <Button 
+                      variant="ghost" 
+                      size="icon-sm" 
+                      className="text-crosshere shrink-0"
+                      onClick={() => window.location.href = `tel:${contact.phone}`}
+                    >
                       <Phone className="size-4" />
                     </Button>
                   </div>

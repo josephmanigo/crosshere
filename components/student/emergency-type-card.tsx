@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { EmergencyTypeItem } from "@/lib/constants";
 
+import { IconRenderer } from "@/components/shared/icon-mapper";
+
 interface EmergencyTypeCardProps {
   item: EmergencyTypeItem;
   selected: boolean;
@@ -25,9 +27,9 @@ export function EmergencyTypeCard({ item, selected, onSelect }: EmergencyTypeCar
       aria-pressed={selected}
       id={`emergency-type-${item.id}`}
     >
-      <span className="text-2xl" role="img" aria-label={item.label}>
-        {item.icon}
-      </span>
+      <div className={cn("size-8 rounded-xl flex items-center justify-center bg-muted/40", item.bgColor)}>
+        <IconRenderer name={item.icon} className={cn("size-5", item.color)} />
+      </div>
       <span className={cn(
         "text-xs font-medium leading-tight text-center",
         selected ? "text-crosshere" : "text-foreground"

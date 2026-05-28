@@ -70,7 +70,11 @@ export default function EmergencyContactsPage() {
             <p className="text-sm font-semibold">Need immediate help?</p>
             <p className="text-xs text-muted-foreground">Call 911 for life-threatening emergencies</p>
           </div>
-          <Button size="sm" className="rounded-xl bg-crosshere hover:bg-crosshere/90 text-white shrink-0 gap-1.5">
+          <Button 
+            size="sm" 
+            className="rounded-xl bg-crosshere hover:bg-crosshere/90 text-white shrink-0 gap-1.5"
+            onClick={() => window.location.href = "tel:911"}
+          >
             <Phone className="size-3.5" />
             911
           </Button>
@@ -122,6 +126,7 @@ export default function EmergencyContactsPage() {
                           size="icon"
                           className="rounded-full size-10"
                           aria-label={`Call ${contact.name}`}
+                          onClick={() => window.location.href = `tel:${contact.phone}`}
                         >
                           <Phone className="size-4 text-crosshere" />
                         </Button>
@@ -131,6 +136,7 @@ export default function EmergencyContactsPage() {
                             size="icon"
                             className="rounded-full size-10"
                             aria-label={`Message ${contact.name}`}
+                            onClick={() => window.location.href = `sms:${contact.phone}`}
                           >
                             <MessageCircle className="size-4 text-muted-foreground" />
                           </Button>

@@ -4,7 +4,6 @@ import * as React from "react";
 import { motion } from "framer-motion";
 import { GlassCard, GlassCardContent } from "@/components/shared/glass-card";
 import { staggerContainer, staggerItem } from "@/lib/animations";
-import { adminInvitations } from "@/lib/mock-data";
 import { 
   Mail, 
   Clock, 
@@ -14,7 +13,8 @@ import {
   Send,
   Trash2,
   RefreshCw,
-  Plus
+  Plus,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -52,6 +52,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { getInvitations, sendInvitation, cancelInvitation } from "@/lib/actions/admin";
+import { toast } from "sonner";
 
 const roleConfig = {
   student: { label: "Student", className: "bg-blue-500/15 text-blue-700 dark:text-blue-400" },
@@ -62,16 +64,95 @@ const roleConfig = {
 
 export default function InvitationsPage() {
   const [activeTab, setActiveTab] = React.useState("pending");
-  const [isBulkInviteOpen, setIsBulkInviteOpen] = React.useState(false);
+  const [invitations, setInvitations] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
-  const filteredInvites = adminInvitations.filter(inv => inv.status === activeTab);
+  // Bulk invite form
+  const [isBulkInviteOpen, setIsBulkInviteOpen] = React.useState(false);
+  const [bulkRole, setBulkRole] = React.useState("student");
+  const [bulkEmails, setBulkEmails] = React.useState("");
+  const [sendingBulk, setSendingBulk] = React.useState(false);
+
+  const loadInvitations = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await getInvitations();
+      setInvitations(data || []);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to load invitations");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadInvitations();
+  }, [loadInvitations]);
+
+  const filteredInvites = invitations.filter(inv => inv.status === activeTab);
+
+  // Stats calculation
+  const totalSent = invitations.length;
+  const pendingCount = invitations.filter(i => i.status === "pending").length;
+  const acceptedCount = invitations.filter(i => i.status === "accepted").length;
+  const expiredCount = invitations.filter(i => i.status === "expired" || i.status === "cancelled").length;
 
   const stats = [
-    { label: "Total Sent", value: adminInvitations.length, icon: Send, color: "text-blue-500", bg: "bg-blue-500/10" },
-    { label: "Pending", value: adminInvitations.filter(i => i.status === "pending").length, icon: Clock, color: "text-amber-500", bg: "bg-amber-500/10" },
-    { label: "Accepted", value: adminInvitations.filter(i => i.status === "accepted").length, icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-    { label: "Expired", value: adminInvitations.filter(i => i.status === "expired").length, icon: XCircle, color: "text-red-500", bg: "bg-red-500/10" },
+    { label: "Total Sent", value: totalSent, icon: Send, color: "text-blue-500", bg: "bg-blue-500/10" },
+    { label: "Pending", value: pendingCount, icon: Clock, color: "text-amber-500", bg: "bg-amber-500/10" },
+    { label: "Accepted", value: acceptedCount, icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+    { label: "Expired/Revoked", value: expiredCount, icon: XCircle, color: "text-red-500", bg: "bg-red-500/10" },
   ];
+
+  // Bulk invite trigger
+  const handleBulkInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const emailsList = bulkEmails
+      .split(/[\s,;\n]+/)
+      .map(e => e.trim())
+      .filter(e => e.length > 0 && e.includes("@"));
+
+    if (emailsList.length === 0) {
+      toast.error("Please enter at least one valid email address.");
+      return;
+    }
+
+    setSendingBulk(true);
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const email of emailsList) {
+      try {
+        await sendInvitation(email, bulkRole);
+        successCount++;
+      } catch (err) {
+        failCount++;
+      }
+    }
+
+    if (successCount > 0) {
+      toast.success(`Successfully sent ${successCount} invitation(s).`);
+    }
+    if (failCount > 0) {
+      toast.error(`Failed to send ${failCount} invitation(s).`);
+    }
+
+    setIsBulkInviteOpen(false);
+    setBulkEmails("");
+    setSendingBulk(false);
+    loadInvitations();
+  };
+
+  // Revoke/cancel invitation
+  const handleRevoke = async (id: string) => {
+    try {
+      await cancelInvitation(id);
+      toast.success("Invitation successfully revoked!");
+      loadInvitations();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to revoke invitation");
+    }
+  };
 
   return (
     <motion.div
@@ -88,7 +169,7 @@ export default function InvitationsPage() {
             Manage user invitations and monitor onboarding status.
           </p>
         </div>
-        <Button onClick={() => setIsBulkInviteOpen(true)} className="bg-crosshere hover:bg-crosshere-crimson text-white">
+        <Button onClick={() => setIsBulkInviteOpen(true)} className="bg-crosshere hover:bg-crosshere/90 text-white">
           <Plus className="mr-2 size-4" />
           Bulk Invite
         </Button>
@@ -125,87 +206,105 @@ export default function InvitationsPage() {
                   <TabsList className="bg-background/50 w-full min-w-max h-auto p-1 flex">
                     <TabsTrigger value="pending" className="text-xs shrink-0 flex-1">Pending</TabsTrigger>
                     <TabsTrigger value="accepted" className="text-xs shrink-0 flex-1">Accepted</TabsTrigger>
-                    <TabsTrigger value="expired" className="text-xs shrink-0 flex-1">Expired</TabsTrigger>
+                    <TabsTrigger value="expired" className="text-xs shrink-0 flex-1">Expired / Revoked</TabsTrigger>
                   </TabsList>
                 </div>
               </div>
 
               <div className="p-0">
-                <Table>
-                  <TableHeader className="bg-muted/30">
-                    <TableRow className="hover:bg-transparent border-border/50">
-                      <TableHead>Email Address</TableHead>
-                      <TableHead>Target Role</TableHead>
-                      <TableHead>Sent Date</TableHead>
-                      <TableHead>Expires / Accepted</TableHead>
-                      <TableHead className="text-right pr-4">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredInvites.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
-                          No {activeTab} invitations found.
-                        </TableCell>
+                {loading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="size-6 animate-spin text-crosshere" />
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader className="bg-muted/30">
+                      <TableRow className="hover:bg-transparent border-border/50">
+                        <TableHead>Email Address</TableHead>
+                        <TableHead>Target Role</TableHead>
+                        <TableHead>Sent Date</TableHead>
+                        <TableHead>Expires / Accepted</TableHead>
+                        <TableHead className="text-right pr-4">Actions</TableHead>
                       </TableRow>
-                    ) : (
-                      filteredInvites.map((invite) => (
-                        <TableRow key={invite.id} className="border-border/50 hover:bg-muted/30 transition-colors">
-                          <TableCell className="font-medium">
-                            <div className="flex items-center gap-2">
-                              <Mail className="size-4 text-muted-foreground" />
-                              {invite.email}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="secondary" className={cn("text-[10px] uppercase font-semibold border-transparent", roleConfig[invite.role as keyof typeof roleConfig].className)}>
-                              {roleConfig[invite.role as keyof typeof roleConfig].label}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {new Date(invite.sentAt).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {invite.status === "accepted" ? (
-                              <span className="text-emerald-500 font-medium flex items-center gap-1.5">
-                                <CheckCircle2 className="size-3.5" /> Accepted
-                              </span>
-                            ) : invite.status === "expired" ? (
-                              <span className="text-red-500 font-medium flex items-center gap-1.5">
-                                <XCircle className="size-3.5" /> Expired
-                              </span>
-                            ) : (
-                              new Date(invite.expiresAt).toLocaleDateString()
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right pr-4">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon-sm" className="h-8 w-8">
-                                  <MoreVertical className="size-4 text-muted-foreground" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-40">
-                                {(invite.status === "pending" || invite.status === "expired") && (
-                                  <DropdownMenuItem>
-                                    <RefreshCw className="mr-2 size-4 text-muted-foreground" />
-                                    Resend Invite
-                                  </DropdownMenuItem>
-                                )}
-                                {invite.status === "pending" && (
-                                  <DropdownMenuItem className="text-red-600 dark:text-red-400 focus:text-red-600 focus:bg-red-500/10">
-                                    <Trash2 className="mr-2 size-4" />
-                                    Revoke
-                                  </DropdownMenuItem>
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredInvites.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
+                            No {activeTab} invitations found.
                           </TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+                      ) : (
+                        filteredInvites.map((invite) => (
+                          <TableRow key={invite.id} className="border-border/50 hover:bg-muted/30 transition-colors">
+                            <TableCell className="font-medium">
+                              <div className="flex items-center gap-2">
+                                <Mail className="size-4 text-muted-foreground" />
+                                {invite.email}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="secondary" className={cn("text-[10px] uppercase font-semibold border-transparent", roleConfig[invite.role as keyof typeof roleConfig]?.className)}>
+                                {roleConfig[invite.role as keyof typeof roleConfig]?.label ?? invite.role}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {new Date(invite.created_at).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {invite.status === "accepted" ? (
+                                <span className="text-emerald-500 font-medium flex items-center gap-1.5">
+                                  <CheckCircle2 className="size-3.5" /> Accepted
+                                </span>
+                              ) : invite.status === "cancelled" ? (
+                                <span className="text-gray-500 font-medium flex items-center gap-1.5">
+                                  <XCircle className="size-3.5" /> Revoked
+                                </span>
+                              ) : invite.status === "expired" ? (
+                                <span className="text-red-500 font-medium flex items-center gap-1.5">
+                                  <XCircle className="size-3.5" /> Expired
+                                </span>
+                              ) : (
+                                new Date(invite.expires_at).toLocaleDateString()
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right pr-4">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon-sm" className="h-8 w-8">
+                                    <MoreVertical className="size-4 text-muted-foreground" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-40">
+                                  {invite.status === "pending" && (
+                                    <DropdownMenuItem onClick={() => handleRevoke(invite.id)} className="text-red-600 dark:text-red-400 focus:text-red-600 focus:bg-red-500/10">
+                                      <Trash2 className="mr-2 size-4" />
+                                      Revoke
+                                    </DropdownMenuItem>
+                                  )}
+                                  {invite.status !== "pending" && (
+                                    <DropdownMenuItem onClick={async () => {
+                                      try {
+                                        await sendInvitation(invite.email, invite.role);
+                                        toast.success("Resent invitation!");
+                                        loadInvitations();
+                                      } catch (err: any) {
+                                        toast.error(err.message || "Failed to resend");
+                                      }
+                                    }}>
+                                      <RefreshCw className="mr-2 size-4 text-muted-foreground" />
+                                      Resend Invite
+                                    </DropdownMenuItem>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                )}
               </div>
             </Tabs>
           </GlassCardContent>
@@ -215,39 +314,46 @@ export default function InvitationsPage() {
       {/* Bulk Invite Dialog */}
       <Dialog open={isBulkInviteOpen} onOpenChange={setIsBulkInviteOpen}>
         <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Bulk Invite Users</DialogTitle>
-            <DialogDescription>
-              Invite multiple users at once by entering their email addresses.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="role">Assign Role</Label>
-              <Select defaultValue="student">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="student">Student</SelectItem>
-                  <SelectItem value="parent">Parent</SelectItem>
-                  <SelectItem value="clinic">Clinic Staff</SelectItem>
-                </SelectContent>
-              </Select>
+          <form onSubmit={handleBulkInvite}>
+            <DialogHeader>
+              <DialogTitle>Bulk Invite Users</DialogTitle>
+              <DialogDescription>
+                Invite multiple users at once by entering their email addresses.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="role">Assign Role</Label>
+                <Select value={bulkRole} onValueChange={setBulkRole}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="student">Student</SelectItem>
+                    <SelectItem value="parent">Parent</SelectItem>
+                    <SelectItem value="clinic">Clinic Staff</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="emails">Email Addresses (comma separated or one per line)</Label>
+                <Textarea 
+                  id="emails" 
+                  value={bulkEmails}
+                  onChange={(e) => setBulkEmails(e.target.value)}
+                  placeholder="student1@school.edu&#10;student2@school.edu"
+                  className="h-32 resize-none"
+                  required
+                />
+              </div>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="emails">Email Addresses (comma separated or one per line)</Label>
-              <Textarea 
-                id="emails" 
-                placeholder="student1@school.edu&#10;student2@school.edu"
-                className="h-32 resize-none"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsBulkInviteOpen(false)}>Cancel</Button>
-            <Button className="bg-crosshere hover:bg-crosshere-crimson text-white">Send Invitations</Button>
-          </DialogFooter>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsBulkInviteOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={sendingBulk} className="bg-crosshere hover:bg-crosshere/90 text-white">
+                {sendingBulk ? "Sending..." : "Send Invitations"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </motion.div>

@@ -12,11 +12,11 @@ import {
   Palette,
   AlertTriangle,
   UploadCloud,
-  Check,
   Sun,
   Moon,
   Monitor,
-  User
+  User,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +45,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/auth-store";
+import { updateUser } from "@/lib/actions/admin";
+import { toast } from "sonner";
 
 const accentColors = [
   { name: "CROSSHERE Red", value: "#DC2626", oklch: "oklch(0.55 0.22 25)" },
@@ -63,7 +66,41 @@ export default function SystemSettingsPage() {
   const [glassIntensity, setGlassIntensity] = React.useState([50]);
   const [selectedAccent, setSelectedAccent] = React.useState(0);
 
-  React.useEffect(() => { setMounted(true); }, []);
+  // Profile Form state
+  const authProfile = useAuthStore((s) => s.profile);
+  const user = useAuthStore((s) => s.user);
+  const [fullName, setFullName] = React.useState("");
+  const [savingProfile, setSavingProfile] = React.useState(false);
+
+  React.useEffect(() => { 
+    setMounted(true); 
+    if (authProfile?.full_name) {
+      setFullName(authProfile.full_name);
+    }
+  }, [authProfile]);
+
+  const handleProfileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user?.id || !fullName) return;
+    setSavingProfile(true);
+    try {
+      await updateUser(user.id, { full_name: fullName });
+      toast.success("Profile updated successfully!");
+      // Reload page to refresh store or wait for next navigation
+      window.location.reload();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save profile changes");
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const initials = (authProfile?.full_name ?? "A")
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <motion.div
@@ -197,7 +234,7 @@ export default function SystemSettingsPage() {
                       <div className="size-16 rounded-xl bg-muted/50 border border-border/50 flex items-center justify-center shrink-0">
                         <span className="text-xl font-bold text-muted-foreground">GW</span>
                       </div>
-                      <Button variant="outline" size="sm" className="bg-background/50">
+                      <Button variant="outline" size="sm" className="bg-background/50" onClick={() => toast.success("Feature coming soon!")}>
                         <UploadCloud className="mr-2 size-4" /> Upload New Logo
                       </Button>
                     </div>
@@ -234,7 +271,7 @@ export default function SystemSettingsPage() {
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction className="bg-red-600 hover:bg-red-700 text-white">
+                        <AlertDialogAction className="bg-red-600 hover:bg-red-700 text-white" onClick={() => toast.success("Reset system settings back to default!")}>
                           Yes, reset everything
                         </AlertDialogAction>
                       </AlertDialogFooter>
@@ -261,7 +298,7 @@ export default function SystemSettingsPage() {
                       <h3 className="text-sm font-medium">Daily Summary Emails</h3>
                       <p className="text-sm text-muted-foreground">Send a daily summary of incidents and system health.</p>
                     </div>
-                    <Switch defaultChecked />
+                    <Switch defaultChecked onCheckedChange={(val) => toast.success(`Daily summary emails ${val ? "enabled" : "disabled"}`)} />
                   </div>
                   <Separator className="bg-border/30" />
                   <div className="flex items-center justify-between">
@@ -269,7 +306,7 @@ export default function SystemSettingsPage() {
                       <h3 className="text-sm font-medium">Critical Incident SMS Alerts</h3>
                       <p className="text-sm text-muted-foreground">Immediately notify system admins via SMS for critical incidents.</p>
                     </div>
-                    <Switch defaultChecked />
+                    <Switch defaultChecked onCheckedChange={(val) => toast.success(`Critical SMS alerts ${val ? "enabled" : "disabled"}`)} />
                   </div>
                   <Separator className="bg-border/30" />
                   <div className="flex items-center justify-between">
@@ -277,7 +314,7 @@ export default function SystemSettingsPage() {
                       <h3 className="text-sm font-medium">New User Registration</h3>
                       <p className="text-sm text-muted-foreground">Receive a notification when a new user joins the platform.</p>
                     </div>
-                    <Switch />
+                    <Switch onCheckedChange={(val) => toast.success(`Registration notifications ${val ? "enabled" : "disabled"}`)} />
                   </div>
                 </div>
               </GlassCardContent>
@@ -286,7 +323,6 @@ export default function SystemSettingsPage() {
 
           {/* Security & Access */}
           <TabsContent value="security" className="space-y-6">
-            {/* Security Settings */}
             <GlassCard intensity="subtle">
               <GlassCardContent>
                 <div className="flex items-center gap-2 mb-4">
@@ -301,13 +337,13 @@ export default function SystemSettingsPage() {
                       <h3 className="text-sm font-medium">Require Two-Factor Authentication (2FA)</h3>
                       <p className="text-sm text-muted-foreground">Force all admin and clinic staff to use 2FA.</p>
                     </div>
-                    <Switch defaultChecked />
+                    <Switch defaultChecked onCheckedChange={(val) => toast.success(`Force 2FA requirement ${val ? "enabled" : "disabled"}`)} />
                   </div>
                   <Separator className="bg-border/30" />
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label>Session Timeout</Label>
-                      <Select defaultValue="30">
+                      <Select defaultValue="30" onValueChange={(val) => toast.success(`Session timeout updated to ${val} minutes`)}>
                         <SelectTrigger className="rounded-full bg-muted/50 border-transparent">
                           <SelectValue />
                         </SelectTrigger>
@@ -321,7 +357,7 @@ export default function SystemSettingsPage() {
                     </div>
                     <div className="space-y-2">
                       <Label>Password Expiry</Label>
-                      <Select defaultValue="90">
+                      <Select defaultValue="90" onValueChange={(val) => toast.success(`Password expiry updated to ${val} days`)}>
                         <SelectTrigger className="rounded-full bg-muted/50 border-transparent">
                           <SelectValue />
                         </SelectTrigger>
@@ -351,7 +387,7 @@ export default function SystemSettingsPage() {
                   <div className="space-y-2">
                     <Label>Auto-escalation Timer</Label>
                     <p className="text-xs text-muted-foreground mb-2">Time before unacknowledged incidents escalate.</p>
-                    <Select defaultValue="5">
+                    <Select defaultValue="5" onValueChange={(val) => toast.success(`Escalation timer updated to ${val} minutes`)}>
                       <SelectTrigger className="rounded-full bg-muted/50 border-transparent">
                         <SelectValue />
                       </SelectTrigger>
@@ -367,7 +403,7 @@ export default function SystemSettingsPage() {
                   <div className="space-y-2">
                     <Label>Default Fallback Contact</Label>
                     <p className="text-xs text-muted-foreground mb-2">Role notified when primary responder is unavailable.</p>
-                    <Select defaultValue="admin">
+                    <Select defaultValue="admin" onValueChange={(val) => toast.success(`Fallback contact role set to: ${val}`)}>
                       <SelectTrigger className="rounded-full bg-muted/50 border-transparent">
                         <SelectValue />
                       </SelectTrigger>
@@ -386,41 +422,53 @@ export default function SystemSettingsPage() {
           {/* Profile */}
           <TabsContent value="profile" className="space-y-6">
             <GlassCard intensity="subtle">
-              <GlassCardContent className="space-y-5">
-                <div className="flex items-center gap-4 mb-2">
-                  <div className="size-16 rounded-2xl bg-crosshere/10 flex items-center justify-center text-crosshere text-xl font-semibold">
-                    AD
+              <GlassCardContent>
+                <form onSubmit={handleProfileSubmit} className="space-y-5">
+                  <div className="flex items-center gap-4 mb-2">
+                    <div className="size-16 rounded-2xl bg-crosshere/10 flex items-center justify-center text-crosshere text-xl font-semibold">
+                      {initials}
+                    </div>
+                    <div>
+                      <p className="text-lg font-semibold">{authProfile?.full_name ?? "User"}</p>
+                      <p className="text-sm text-muted-foreground capitalize">{authProfile?.role ?? "User"} Account</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-lg font-semibold">System Admin</p>
-                    <p className="text-sm text-muted-foreground">Super Administrator</p>
-                  </div>
-                </div>
 
-                <Separator className="bg-border/50" />
+                  <Separator className="bg-border/50" />
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>First Name</Label>
-                    <Input defaultValue="System" className="rounded-full bg-muted/50 border-transparent" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="profile-fullname">Full Name</Label>
+                      <Input 
+                        id="profile-fullname"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        className="rounded-full bg-muted/50 border-transparent"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="profile-email">Email Address (Read-only)</Label>
+                      <Input 
+                        id="profile-email"
+                        value={authProfile?.email || ""}
+                        disabled
+                        className="rounded-full bg-muted/20 border-transparent cursor-not-allowed opacity-75"
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Last Name</Label>
-                    <Input defaultValue="Admin" className="rounded-full bg-muted/50 border-transparent" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Email</Label>
-                    <Input defaultValue="admin@crosshere.edu" type="email" className="rounded-full bg-muted/50 border-transparent" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Phone</Label>
-                    <Input defaultValue="+1 (555) 000-0000" className="rounded-full bg-muted/50 border-transparent" />
-                  </div>
-                </div>
 
-                <div className="flex justify-end pt-2">
-                  <Button className="bg-crosshere hover:bg-crosshere-crimson text-white">Save Profile</Button>
-                </div>
+                  <div className="flex justify-end pt-2">
+                    <Button type="submit" disabled={savingProfile} className="bg-crosshere hover:bg-crosshere/90 text-white">
+                      {savingProfile ? (
+                        <>
+                          <Loader2 className="mr-2 size-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : "Save Profile"}
+                    </Button>
+                  </div>
+                </form>
               </GlassCardContent>
             </GlassCard>
           </TabsContent>

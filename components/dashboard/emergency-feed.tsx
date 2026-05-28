@@ -2,26 +2,28 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { IncidentCard } from "./incident-card";
 import { staggerContainer } from "@/lib/animations";
-import { mockIncidents } from "@/lib/mock-data";
-import type { Severity } from "@/lib/constants";
 
-export function EmergencyFeed() {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function EmergencyFeed({ incidents = [] }: { incidents?: any[] }) {
   const [filter, setFilter] = React.useState("all");
 
-  const filtered = filter === "all"
-    ? mockIncidents
-    : mockIncidents.filter((inc) => inc.severity === filter);
+  const filtered =
+    filter === "all"
+      ? incidents
+      : incidents.filter((inc) => inc.severity === filter);
+
+  const activeCount = incidents.filter((i) => i.status !== "resolved").length;
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold tracking-tight">Emergency Feed</h2>
         <span className="text-xs text-muted-foreground">
-          {mockIncidents.filter((i) => i.status !== "resolved").length} active
+          {activeCount} active
         </span>
       </div>
 
@@ -43,9 +45,15 @@ export function EmergencyFeed() {
           key={filter}
           className="space-y-3"
         >
-          {filtered.map((incident) => (
-            <IncidentCard key={incident.id} incident={incident} />
-          ))}
+          {filtered.length === 0 ? (
+            <div className="flex items-center justify-center h-40 text-sm text-muted-foreground">
+              No incidents found.
+            </div>
+          ) : (
+            filtered.map((incident) => (
+              <IncidentCard key={incident.id} incident={incident} />
+            ))
+          )}
         </motion.div>
       </ScrollArea>
     </div>

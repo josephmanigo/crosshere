@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   ArrowUpRight,
   MapPin,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,20 +34,19 @@ import {
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GlassCard, GlassCardContent } from "@/components/shared/glass-card";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { PulseIndicator } from "@/components/shared/pulse-indicator";
 import { AnimatedCounter } from "@/components/shared/animated-counter";
-import { mockIncidents } from "@/lib/mock-data";
-import { severityConfig, incidentStatusConfig } from "@/lib/constants";
-import { staggerContainer, staggerItem, fadeInUp } from "@/lib/animations";
+import { incidentStatusConfig } from "@/lib/constants";
+import { staggerContainer, staggerItem } from "@/lib/animations";
 import { cn } from "@/lib/utils";
-import type { Severity, IncidentStatus } from "@/lib/constants";
+import { getIncidents } from "@/lib/actions/incidents";
+import { useLiveIncidents } from "@/hooks/use-realtime-incidents";
+import { toast } from "sonner";
 
 function formatTime(dateStr: string) {
-  const date = new Date(dateStr);
-  return date.toLocaleTimeString("en-US", {
+  return new Date(dateStr).toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
@@ -54,69 +54,95 @@ function formatTime(dateStr: string) {
 }
 
 function formatDate(dateStr: string) {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", {
+  return new Date(dateStr).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
 }
 
-function getElapsedMinutes(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  return Math.floor(diff / 60000);
+function getStudentName(incident: any): string {
+  return incident.students?.profiles?.full_name ?? "Unknown Student";
 }
 
-const summaryStats = [
-  {
-    label: "Total Active",
-    value: mockIncidents.filter((i) => i.status !== "resolved").length,
-    icon: Activity,
-    iconColor: "text-red-500",
-    bgColor: "bg-red-500/10",
-  },
-  {
-    label: "Critical",
-    value: mockIncidents.filter(
-      (i) => i.severity === "critical" && i.status !== "resolved"
-    ).length,
-    icon: AlertTriangle,
-    iconColor: "text-red-600",
-    bgColor: "bg-red-600/10",
-  },
-  {
-    label: "Responding",
-    value: mockIncidents.filter((i) => i.status === "responding").length,
-    icon: Clock,
-    iconColor: "text-blue-500",
-    bgColor: "bg-blue-500/10",
-  },
-  {
-    label: "Resolved Today",
-    value: mockIncidents.filter((i) => i.status === "resolved").length,
-    icon: CheckCircle2,
-    iconColor: "text-emerald-500",
-    bgColor: "bg-emerald-500/10",
-  },
-];
+function getStudentInitials(incident: any): string {
+  const name = getStudentName(incident);
+  return name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
+}
 
 export default function IncidentsPage() {
   const router = useRouter();
   const [search, setSearch] = React.useState("");
   const [severityFilter, setSeverityFilter] = React.useState("all");
   const [statusFilter, setStatusFilter] = React.useState("all");
+  const [rawIncidents, setRawIncidents] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
-  const filtered = mockIncidents.filter((inc) => {
+  // Load initial data
+  const loadIncidents = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await getIncidents({ limit: 100 });
+      setRawIncidents(data ?? []);
+    } catch (err) {
+      toast.error("Failed to load incidents");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadIncidents();
+  }, [loadIncidents]);
+
+  // Live updates via Realtime
+  const incidents = useLiveIncidents(rawIncidents);
+
+  const filtered = incidents.filter((inc) => {
+    const studentName = getStudentName(inc).toLowerCase();
     const matchSearch =
-      inc.studentName.toLowerCase().includes(search.toLowerCase()) ||
+      studentName.includes(search.toLowerCase()) ||
       inc.id.toLowerCase().includes(search.toLowerCase()) ||
       inc.type.toLowerCase().includes(search.toLowerCase());
-    const matchSeverity =
-      severityFilter === "all" || inc.severity === severityFilter;
-    const matchStatus =
-      statusFilter === "all" || inc.status === statusFilter;
+    const matchSeverity = severityFilter === "all" || inc.severity === severityFilter;
+    const matchStatus = statusFilter === "all" || inc.status === statusFilter;
     return matchSearch && matchSeverity && matchStatus;
   });
+
+  const summaryStats = [
+    {
+      label: "Total Active",
+      value: incidents.filter((i) => i.status !== "resolved").length,
+      icon: Activity,
+      iconColor: "text-red-500",
+      bgColor: "bg-red-500/10",
+    },
+    {
+      label: "Critical",
+      value: incidents.filter((i) => i.severity === "critical" && i.status !== "resolved").length,
+      icon: AlertTriangle,
+      iconColor: "text-red-600",
+      bgColor: "bg-red-600/10",
+    },
+    {
+      label: "Responding",
+      value: incidents.filter((i) => i.status === "responding").length,
+      icon: Clock,
+      iconColor: "text-blue-500",
+      bgColor: "bg-blue-500/10",
+    },
+    {
+      label: "Resolved Today",
+      value: incidents.filter((i) => {
+        if (i.status !== "resolved" || !i.resolved_at) return false;
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        return new Date(i.resolved_at) >= today;
+      }).length,
+      icon: CheckCircle2,
+      iconColor: "text-emerald-500",
+      bgColor: "bg-emerald-500/10",
+    },
+  ];
 
   return (
     <motion.div
@@ -126,20 +152,21 @@ export default function IncidentsPage() {
       className="space-y-6 pt-2"
     >
       {/* Header */}
-      <motion.div variants={staggerItem}>
-        <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">
-          Incidents
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Track, manage, and review all emergency incidents
-        </p>
+      <motion.div variants={staggerItem} className="flex items-end justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Incidents</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Track, manage, and review all emergency incidents
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={loadIncidents} disabled={loading}>
+          <RefreshCw className={cn("size-4 mr-2", loading && "animate-spin")} />
+          Refresh
+        </Button>
       </motion.div>
 
       {/* Summary Stats */}
-      <motion.div
-        variants={staggerItem}
-        className="grid grid-cols-2 sm:grid-cols-4 gap-4"
-      >
+      <motion.div variants={staggerItem} className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {summaryStats.map((stat) => (
           <GlassCard key={stat.label} intensity="subtle">
             <GlassCardContent>
@@ -160,10 +187,7 @@ export default function IncidentsPage() {
       </motion.div>
 
       {/* Filters */}
-      <motion.div
-        variants={staggerItem}
-        className="flex flex-col sm:flex-row gap-3"
-      >
+      <motion.div variants={staggerItem} className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
@@ -198,7 +222,7 @@ export default function IncidentsPage() {
           </SelectContent>
         </Select>
         <Button variant="outline" size="default" className="h-10">
-          <Download className="size-4" /> Export
+          <Download className="size-4 mr-2" /> Export
         </Button>
       </motion.div>
 
@@ -222,41 +246,44 @@ export default function IncidentsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.length === 0 ? (
+                  {loading ? (
                     <TableRow>
-                      <TableCell
-                        colSpan={9}
-                        className="h-24 text-center text-muted-foreground"
-                      >
+                      <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
+                        <div className="flex items-center justify-center gap-2">
+                          <RefreshCw className="size-4 animate-spin" />
+                          Loading incidents...
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : filtered.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
                         No incidents found matching your filters.
                       </TableCell>
                     </TableRow>
                   ) : (
                     filtered.map((incident) => {
                       const isActive = incident.status !== "resolved";
-                      const elapsed = getElapsedMinutes(incident.reportedAt);
+                      const studentName = getStudentName(incident);
+                      const initials = getStudentInitials(incident);
+                      const responderName = (incident as any).responder?.full_name ?? "—";
+
                       return (
                         <TableRow
                           key={incident.id}
                           className="cursor-pointer hover:bg-muted/30"
-                          onClick={() =>
-                            router.push(`/incidents/${incident.id}`)
-                          }
+                          onClick={() => router.push(`/clinic/incidents/${incident.id}`)}
                         >
                           <TableCell>
                             <div className="flex items-center gap-2">
                               {isActive && (
                                 <PulseIndicator
-                                  color={
-                                    incident.severity === "critical"
-                                      ? "red"
-                                      : "amber"
-                                  }
+                                  color={incident.severity === "critical" ? "red" : "amber"}
                                   size="sm"
                                 />
                               )}
                               <span className="text-sm font-mono font-medium">
-                                {incident.id}
+                                {incident.id.slice(0, 8).toUpperCase()}
                               </span>
                             </div>
                           </TableCell>
@@ -264,17 +291,13 @@ export default function IncidentsPage() {
                             <div className="flex items-center gap-2">
                               <Avatar className="size-7">
                                 <AvatarFallback className="bg-muted text-[10px] font-medium">
-                                  {incident.studentAvatar}
+                                  {initials}
                                 </AvatarFallback>
                               </Avatar>
-                              <span className="text-sm font-medium">
-                                {incident.studentName}
-                              </span>
+                              <span className="text-sm font-medium">{studentName}</span>
                             </div>
                           </TableCell>
-                          <TableCell className="text-sm">
-                            {incident.type}
-                          </TableCell>
+                          <TableCell className="text-sm">{incident.type}</TableCell>
                           <TableCell>
                             <StatusBadge severity={incident.severity} />
                           </TableCell>
@@ -283,10 +306,10 @@ export default function IncidentsPage() {
                               variant="outline"
                               className={cn(
                                 "text-xs capitalize",
-                                incidentStatusConfig[incident.status].className
+                                incidentStatusConfig[incident.status as keyof typeof incidentStatusConfig]?.className
                               )}
                             >
-                              {incidentStatusConfig[incident.status].label}
+                              {incidentStatusConfig[incident.status as keyof typeof incidentStatusConfig]?.label ?? incident.status}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -297,14 +320,12 @@ export default function IncidentsPage() {
                           </TableCell>
                           <TableCell>
                             <div className="text-xs">
-                              <p>{formatTime(incident.reportedAt)}</p>
-                              <p className="text-muted-foreground">
-                                {formatDate(incident.reportedAt)}
-                              </p>
+                              <p>{formatTime(incident.reported_at)}</p>
+                              <p className="text-muted-foreground">{formatDate(incident.reported_at)}</p>
                             </div>
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">
-                            {incident.responder || "—"}
+                            {responderName}
                           </TableCell>
                           <TableCell className="text-right">
                             <Button variant="ghost" size="icon-xs">
@@ -322,15 +343,11 @@ export default function IncidentsPage() {
             {/* Footer */}
             <div className="flex items-center justify-between pt-4 border-t border-border/50 mt-4">
               <p className="text-xs text-muted-foreground">
-                Showing {filtered.length} of {mockIncidents.length} incidents
+                Showing {filtered.length} of {incidents.length} incidents
               </p>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" disabled>
-                  Previous
-                </Button>
-                <Button variant="outline" size="sm" disabled>
-                  Next
-                </Button>
+                <Button variant="outline" size="sm" disabled>Previous</Button>
+                <Button variant="outline" size="sm" disabled>Next</Button>
               </div>
             </div>
           </GlassCardContent>

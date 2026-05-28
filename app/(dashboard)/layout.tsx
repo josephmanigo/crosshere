@@ -17,13 +17,15 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   React.useEffect(() => {
-    /* 
-    // DEV BYPASS: Authentication checks temporarily disabled
     if (!isLoading) {
+      // Not authenticated → redirect to login
       if (!isAuthenticated) {
-        router.push("/login");
-      } else if (role) {
-        // Enforce boundaries client-side as well
+        router.push(`/login?redirect=${pathname}`);
+        return;
+      }
+
+      // Enforce role boundaries — prevent cross-role access
+      if (role) {
         if (pathname.startsWith("/student") && role !== "student") {
           router.push(`/${role}`);
         } else if (pathname.startsWith("/clinic") && role !== "clinic") {
@@ -35,11 +37,8 @@ export default function DashboardLayout({
         }
       }
     }
-    */
   }, [isLoading, isAuthenticated, router, pathname, role]);
 
-  /*
-  // DEV BYPASS: Loading states temporarily disabled
   if (isLoading || !isAuthenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -47,7 +46,23 @@ export default function DashboardLayout({
       </div>
     );
   }
-  */
 
-  return <>{children}</>;
+  return (
+    <div className="min-h-screen w-full relative overflow-x-hidden bg-background">
+      {/* Responsive Dashboard Background Image (Desktop/Tablet) */}
+      <div 
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-[0.06] dark:opacity-[0.25] transition-opacity duration-300 hidden md:block blur-[3px] scale-105"
+        style={{ backgroundImage: "url('/dashboard-bg.png')" }}
+      />
+      {/* Responsive Dashboard Background Image (Mobile) */}
+      <div 
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-[0.06] dark:opacity-[0.25] transition-opacity duration-300 block md:hidden blur-[3px] scale-105"
+        style={{ backgroundImage: "url('/dashboard-bg-mobile.png')" }}
+      />
+      {/* Layout Content */}
+      <div className="relative z-10 min-h-screen w-full flex flex-col">
+        {children}
+      </div>
+    </div>
+  );
 }

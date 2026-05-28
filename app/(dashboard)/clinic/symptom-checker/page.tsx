@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { GlassCard, GlassCardContent } from "@/components/shared/glass-card";
 import { symptomCategories } from "@/lib/constants";
+import { IconRenderer } from "@/components/shared/icon-mapper";
 import { fadeInUp, staggerContainer, staggerItem, scaleIn } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 
@@ -148,7 +149,15 @@ export default function SymptomCheckerPage() {
                           : "border-border hover:bg-muted/50"
                       )}
                     >
-                      <span className="text-xl">{cat.icon}</span>
+                      <div className={cn(
+                        "size-8 rounded-lg flex items-center justify-center bg-muted/40",
+                        selectedCategory === cat.id ? "bg-crosshere/10" : ""
+                      )}>
+                        <IconRenderer 
+                          name={cat.icon} 
+                          className={cn("size-4", selectedCategory === cat.id ? "text-crosshere" : "text-muted-foreground")} 
+                        />
+                      </div>
                       <span className="text-sm font-medium">{cat.label}</span>
                     </button>
                   ))}

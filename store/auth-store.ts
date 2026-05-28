@@ -1,99 +1,158 @@
 import { create } from "zustand";
-import Cookies from "js-cookie";
+import { createClient } from "@/lib/supabase/client";
+import type { User, Session } from "@supabase/supabase-js";
 
 export type Role = "student" | "clinic" | "parent" | "admin" | null;
 
-export interface User {
+export interface Profile {
   id: string;
-  name: string;
   email: string;
+  full_name: string | null;
   role: Role;
-  avatarUrl?: string;
+  avatar_url: string | null;
+  is_active: boolean;
 }
 
 interface AuthState {
   user: User | null;
+  profile: Profile | null;
   role: Role;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (user: User) => void;
-  logout: () => void;
-  initialize: () => void;
+  error: string | null;
+  // Actions
+  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string, fullName: string, role: Role) => Promise<{ error: string | null }>;
+  signOut: () => Promise<void>;
+  logout: () => Promise<void>; // alias for signOut
+  resetPassword: (email: string) => Promise<{ error: string | null }>;
+  setSession: (user: User | null, session: Session | null) => Promise<void>;
+  clearError: () => void;
 }
 
-// Mock Users for testing
-export const MOCK_USERS: Record<string, User> = {
-  student: {
-    id: "stu_123",
-    name: "Alex Johnson",
-    email: "alex.j@school.edu",
-    role: "student",
-  },
-  clinic: {
-    id: "clin_123",
-    name: "Nurse Sarah",
-    email: "sarah.nurse@school.edu",
-    role: "clinic",
-  },
-  parent: {
-    id: "par_123",
-    name: "Michael Johnson",
-    email: "michael.j@email.com",
-    role: "parent",
-  },
-  admin: {
-    id: "adm_123",
-    name: "Admin User",
-    email: "admin@crosshere.com",
-    role: "admin",
-  },
-};
-
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
+  profile: null,
   role: null,
   isAuthenticated: false,
-  isLoading: true, // starts loading until initialized
+  isLoading: true,
+  error: null,
 
-  login: (user: User) => {
-    // Set cookie for middleware
-    Cookies.set("crosshere-session-role", user.role || "", { expires: 7 });
-    
-    set({
-      user,
-      role: user.role,
-      isAuthenticated: true,
+  signIn: async (email, password) => {
+    const supabase = createClient();
+    set({ isLoading: true, error: null });
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
-  },
 
-  logout: () => {
-    Cookies.remove("crosshere-session-role");
-    
-    set({
-      user: null,
-      role: null,
-      isAuthenticated: false,
-    });
-  },
+    if (error) {
+      set({ isLoading: false, error: error.message });
+      return { error: error.message };
+    }
 
-  initialize: () => {
-    // Read cookie to hydrate state
-    const roleCookie = Cookies.get("crosshere-session-role") as Role;
-    
-    if (roleCookie && MOCK_USERS[roleCookie]) {
+    if (data.user) {
+      // Fetch profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", data.user.id)
+        .single();
+
       set({
-        user: MOCK_USERS[roleCookie],
-        role: roleCookie,
+        user: data.user,
+        profile,
+        role: (profile?.role ?? data.user.user_metadata?.role ?? "student") as Role,
         isAuthenticated: true,
         isLoading: false,
-      });
-    } else {
-      set({
-        user: null,
-        role: null,
-        isAuthenticated: false,
-        isLoading: false,
+        error: null,
       });
     }
+
+    return { error: null };
   },
+
+  signUp: async (email, password, fullName, role) => {
+    const supabase = createClient();
+    set({ isLoading: true, error: null });
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          role: role ?? "student",
+        },
+      },
+    });
+
+    if (error) {
+      set({ isLoading: false, error: error.message });
+      return { error: error.message };
+    }
+
+    set({ isLoading: false });
+    return { error: null };
+  },
+
+  signOut: async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    set({
+      user: null,
+      profile: null,
+      role: null,
+      isAuthenticated: false,
+      isLoading: false,
+      error: null,
+    });
+  },
+
+  resetPassword: async (email) => {
+    const supabase = createClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) return { error: error.message };
+    return { error: null };
+  },
+
+  setSession: async (user, _session) => {
+    if (!user) {
+      set({ user: null, profile: null, role: null, isAuthenticated: false, isLoading: false });
+      return;
+    }
+
+    const supabase = createClient();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    set({
+      user,
+      profile,
+      role: (profile?.role ?? user.user_metadata?.role ?? "student") as Role,
+      isAuthenticated: true,
+      isLoading: false,
+    });
+  },
+
+  logout: async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    set({
+      user: null,
+      profile: null,
+      role: null,
+      isAuthenticated: false,
+      isLoading: false,
+      error: null,
+    });
+  },
+
+  clearError: () => set({ error: null }),
 }));

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { hoverLift } from "@/lib/animations";
 
@@ -14,9 +14,9 @@ interface GlassCardProps extends React.ComponentProps<typeof Card> {
 }
 
 const intensityStyles = {
-  subtle: "bg-card/50 dark:bg-card/30 backdrop-blur-sm",
-  medium: "bg-card/70 dark:bg-card/50 backdrop-blur-md",
-  strong: "bg-card/90 dark:bg-card/70 backdrop-blur-lg",
+  subtle: "bg-card/45 dark:bg-card/20 backdrop-blur-[12px]",
+  medium: "bg-card/65 dark:bg-card/35 backdrop-blur-[20px]",
+  strong: "bg-card/85 dark:bg-card/55 backdrop-blur-[28px]",
 };
 
 export function GlassCard({
@@ -34,18 +34,22 @@ export function GlassCard({
     <Wrapper {...motionProps} className={cn(typeof className === "string" && className.includes("h-full") && "h-full")}>
       <Card
         className={cn(
-          "rounded-2xl border border-glass-border shadow-sm transition-shadow duration-300",
+          "rounded-3xl border border-glass-border shadow-lg relative overflow-hidden transition-all duration-300",
           intensityStyles[intensity],
-          glow && "shadow-crosshere/5 dark:shadow-crosshere/10",
-          hover && "cursor-pointer",
+          glow && "shadow-[0_0_20px_rgba(122,0,16,0.06)] dark:shadow-[0_0_25px_rgba(254,211,215,0.08)]",
+          hover && "cursor-pointer hover:shadow-xl hover:border-glass-border/30 dark:hover:border-white/20",
           className
         )}
         {...props}
       >
-        {children}
+        {/* Top-left glass reflection highlight line */}
+        <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 dark:via-white/15 to-transparent pointer-events-none" />
+        <div className="absolute left-0 inset-y-0 w-[1px] bg-gradient-to-b from-transparent via-white/5 dark:via-white/10 to-transparent pointer-events-none" />
+        
+        <div className="relative z-10">{children}</div>
       </Card>
     </Wrapper>
   );
 }
 
-export { CardContent as GlassCardContent, CardHeader as GlassCardHeader, CardTitle as GlassCardTitle, CardDescription as GlassCardDescription };
+export { CardContent as GlassCardContent, CardHeader as GlassCardHeader, CardTitle as GlassCardTitle, CardDescription as GlassCardDescription } from "@/components/ui/card";
