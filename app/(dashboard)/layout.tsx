@@ -49,14 +49,25 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden bg-background">
-      {/* Responsive Dashboard Background Image (Desktop/Tablet) */}
+      {/* Light Mode Desktop Background */}
       <div 
-        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-[0.06] dark:opacity-[0.25] transition-opacity duration-300 hidden md:block blur-[3px] scale-105"
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none transition-opacity duration-300 hidden md:block dark:hidden blur-[3px] scale-105 opacity-[0.85]"
+        style={{ backgroundImage: "url('/dashboard-bg-light.png')" }}
+      />
+      {/* Dark Mode Desktop Background */}
+      <div 
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none transition-opacity duration-300 hidden dark:md:block blur-[3px] scale-105 opacity-[0.25]"
         style={{ backgroundImage: "url('/dashboard-bg.png')" }}
       />
-      {/* Responsive Dashboard Background Image (Mobile) */}
+
+      {/* Light Mode Mobile Background */}
       <div 
-        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-[0.06] dark:opacity-[0.25] transition-opacity duration-300 block md:hidden blur-[3px] scale-105"
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none transition-opacity duration-300 block md:hidden dark:hidden blur-[3px] scale-105 opacity-[0.85]"
+        style={{ backgroundImage: "url('/dashboard-bg-mobile-light.png')" }}
+      />
+      {/* Dark Mode Mobile Background */}
+      <div 
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none transition-opacity duration-300 hidden dark:block dark:md:hidden blur-[3px] scale-105 opacity-[0.25]"
         style={{ backgroundImage: "url('/dashboard-bg-mobile.png')" }}
       />
       {/* Layout Content */}
